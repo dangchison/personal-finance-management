@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  username      String?   @unique
+  passwordHash  String
+  name          String?
+  image         String?
+  family        Family?   @relation(fields: [familyId], references: [id])
+  familyId      String?
+  role          Role      @default(MEMBER)
+  transactions  Transaction[]
+  budgets       Budget[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Family {
+  id          String    @id @default(uuid())
+  name        String
+  inviteCode  String    @unique @default(cuid())
+  users       User[]
+  categories  Category[]
+  budgets     Budget[]
+  createdAt   DateTime  @default(now())
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Decimal
+  description String
+  date        DateTime @default(now())
+  type        TransactionType
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  type        TransactionType
+  isDefault   Boolean  @default(false)
+  family      Family?  @relation(fields: [familyId], references: [id])
+  familyId    String?
+  transactions Transaction[]
+}
+
+model Budget {
+  id        String   @id @default(uuid())
+  amount    Decimal
+  month     Int
+  year      Int
+  user      User?    @relation(fields: [userId], references: [id]) // Optional: user-specific budget
+  userId    String?
+  family    Family?  @relation(fields: [familyId], references: [id]) // Optional: family-wide budget
+  familyId  String?
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
