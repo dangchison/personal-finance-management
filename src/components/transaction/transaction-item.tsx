@@ -1,20 +1,23 @@
 "use client";
 
-import { ArrowDownLeft, ArrowUpRight, Tag, Edit } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TransactionWithCategory } from "@/actions/transaction";
-import { Button } from "@/components/ui/button";
 
 interface TransactionItemProps {
   transaction: TransactionWithCategory;
-  onEdit: (transaction: TransactionWithCategory) => void;
+  onEdit?: (transaction: TransactionWithCategory) => void;
+  onView?: (transaction: TransactionWithCategory) => void;
   readOnly?: boolean;
 }
 
-export function TransactionItem({ transaction, onEdit, readOnly = false }: TransactionItemProps) {
+export function TransactionItem({ transaction, onView, readOnly = false }: TransactionItemProps) {
   return (
     <div className="px-1 py-1">
-      <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors shadow-sm bg-card h-full group">
+      <div
+        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors shadow-sm bg-card h-full group cursor-pointer"
+        onClick={() => onView?.(transaction)}
+      >
         <div className="flex items-center gap-3 sm:gap-4 overflow-hidden flex-1">
           <div
             className={cn(
@@ -58,19 +61,9 @@ export function TransactionItem({ transaction, onEdit, readOnly = false }: Trans
             </div>
           </div>
 
-          {!readOnly ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-              onClick={() => onEdit(transaction)}
-            >
-              <Edit className="h-4 w-4" />
-              <span className="sr-only">Chỉnh sửa</span>
-            </Button>
-          ) : (
-            <div className="h-8 w-8 flex items-center justify-center">
-              {transaction.user?.image ? (
+          {readOnly && transaction.user && (
+            <div className="h-8 w-8 flex items-center justify-center shrink-0">
+              {transaction.user.image ? (
                 <img
                   src={transaction.user.image}
                   alt={transaction.user.name || "User"}

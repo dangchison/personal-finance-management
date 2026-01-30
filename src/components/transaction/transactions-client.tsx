@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, FilterX, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AddTransaction } from "./add-transaction";
+import { TransactionDetailsModal } from "./transaction-details-modal";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateRange } from "react-day-picker";
 import { TransactionFilters } from "./transaction-filters";
@@ -41,6 +42,8 @@ export function TransactionsClient({
   const [isPending, startTransition] = useTransition();
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [viewingTransaction, setViewingTransaction] = useState<TransactionWithCategory | null>(null);
+  const [isViewOpen, setIsViewOpen] = useState(false);
 
   // Filters State
   const scope = searchParams.get("scope") || initialScope;
@@ -88,8 +91,23 @@ export function TransactionsClient({
   };
 
   const handleEdit = (transaction: TransactionWithCategory) => {
+    if (scope === 'family') return;
     setEditingTransaction(transaction);
     setIsEditOpen(true);
+    setIsViewOpen(false); // Close view if open
+  };
+
+  const handleView = (transaction: TransactionWithCategory) => {
+    setViewingTransaction(transaction);
+    setIsViewOpen(true);
+  };
+
+  const handleEditFromView = () => {
+    if (viewingTransaction && scope !== 'family') {
+      setEditingTransaction(viewingTransaction);
+      setIsViewOpen(false);
+      setIsEditOpen(true);
+    }
   };
 
   const onOpenChange = (open: boolean) => {
@@ -179,6 +197,7 @@ export function TransactionsClient({
         <TransactionList
           transactions={initialTransactions}
           onEdit={handleEdit}
+          onView={handleView}
           readOnly={scope === "family"}
           isLoading={isPending}
           isFullPage={true}
@@ -210,6 +229,15 @@ export function TransactionsClient({
         initialData={editingTransaction as any}
         open={isEditOpen}
         onOpenChange={onOpenChange}
+      />
+
+      {/* View Modal */}
+      <TransactionDetailsModal
+        transaction={viewingTransaction}
+        open={isViewOpen}
+        onOpenChange={setIsViewOpen}
+        onEdit={handleEditFromView}
+        readOnly={scope === 'family'}
       />
 
       <style jsx global>{`

@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -182,7 +183,13 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
             <FormItem>
               <FormLabel>Ghi chú</FormLabel>
               <FormControl>
-                <Input placeholder="Ví dụ: Ăn trưa, Tiền xăng..." {...field} disabled={loading} />
+                <Textarea
+                  placeholder="Ví dụ: Ăn trưa, Tiền xăng..."
+                  {...field}
+                  disabled={loading}
+                  rows={3}
+                  className="resize-none"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

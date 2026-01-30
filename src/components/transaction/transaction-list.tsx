@@ -12,6 +12,7 @@ import { TransactionGroup } from "./transaction-group";
 interface TransactionListProps {
   transactions: TransactionWithCategory[];
   onEdit: (transaction: TransactionWithCategory) => void;
+  onView?: (transaction: TransactionWithCategory) => void;
   readOnly?: boolean;
   isLoading?: boolean;
   isFullPage?: boolean;
@@ -42,6 +43,7 @@ function groupTransactionsByDate(transactions: TransactionWithCategory[]) {
 export function TransactionList({
   transactions,
   onEdit,
+  onView,
   readOnly = false,
   isLoading = false,
   isFullPage = false
@@ -82,6 +84,7 @@ export function TransactionList({
               date={group.date}
               transactions={group.transactions}
               onEdit={onEdit}
+              onView={onView}
               readOnly={readOnly}
             />
           ))}

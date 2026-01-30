@@ -17,10 +17,11 @@ interface TransactionGroupProps {
   date: Date;
   transactions: TransactionWithCategory[];
   onEdit: (transaction: TransactionWithCategory) => void;
+  onView?: (transaction: TransactionWithCategory) => void;
   readOnly?: boolean;
 }
 
-export function TransactionGroup({ date, transactions, onEdit, readOnly = false }: TransactionGroupProps) {
+export function TransactionGroup({ date, transactions, onEdit, onView, readOnly = false }: TransactionGroupProps) {
   return (
     <div className="space-y-2">
       {/* Date Header */}
@@ -36,7 +37,7 @@ export function TransactionGroup({ date, transactions, onEdit, readOnly = false 
           <TransactionItem
             key={transaction.id}
             transaction={transaction}
-            onEdit={onEdit}
+            onView={onView}
             readOnly={readOnly}
           />
         ))}

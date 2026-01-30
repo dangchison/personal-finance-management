@@ -11,6 +11,8 @@ import { TransactionList } from "@/components/transaction/transaction-list";
 import { Category } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WelcomeScreen } from "@/components/auth/welcome-screen";
+import { CountUpAnimation } from "@/components/ui/count-up-animation";
+import { TransactionDetailsModal } from "@/components/transaction/transaction-details-modal";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionFilters } from "@/components/transaction/transaction-filters";
@@ -39,6 +41,8 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   const searchParams = useSearchParams();
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [viewingTransaction, setViewingTransaction] = useState<TransactionWithCategory | null>(null);
+  const [isViewOpen, setIsViewOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [showFilters, setShowFilters] = useState(false);
   const [navLoading, setNavLoading] = useState<string | null>(null);
@@ -97,9 +101,23 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   };
 
   const handleEdit = (transaction: TransactionWithCategory) => {
-    if (scope === 'family') return; // Double check, though UI hides it
+    if (scope === 'family') return;
     setEditingTransaction(transaction);
     setIsEditOpen(true);
+    setIsViewOpen(false); // Close view if open
+  };
+
+  const handleView = (transaction: TransactionWithCategory) => {
+    setViewingTransaction(transaction);
+    setIsViewOpen(true);
+  };
+
+  const handleEditFromView = () => {
+    if (viewingTransaction && scope !== 'family') {
+      setEditingTransaction(viewingTransaction);
+      setIsViewOpen(false);
+      setIsEditOpen(true);
+    }
   };
 
   const onOpenChange = (open: boolean) => {
@@ -135,7 +153,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {new Intl.NumberFormat("vi-VN").format(stats.expense)} ₫
+                <CountUpAnimation end={stats.expense} /> ₫
               </div>
               <p className="text-xs opacity-80 mt-1">So với tháng trước: --%</p>
             </CardContent>
@@ -148,12 +166,12 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
               {budgetProgress && budgetProgress.length > 0 ? (
                 <>
                   <div className="text-3xl font-bold">
-                    {new Intl.NumberFormat("vi-VN").format(
-                      budgetProgress.reduce((acc, b) => acc + (b.amount - b.spent), 0)
-                    )} ₫
+                    <CountUpAnimation
+                      end={budgetProgress.reduce((acc, b) => acc + (b.amount - b.spent), 0)}
+                    /> ₫
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Tổng hạn mức: {new Intl.NumberFormat("vi-VN").format(budgetProgress.reduce((acc, b) => acc + b.amount, 0))} ₫
+                    Tổng hạn mức: <CountUpAnimation end={budgetProgress.reduce((acc, b) => acc + b.amount, 0)} /> ₫
                   </p>
                 </>
               ) : (
@@ -272,6 +290,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
               <TransactionList
                 transactions={transactions}
                 onEdit={handleEdit}
+                onView={handleView}
                 readOnly={false}
                 isLoading={isPending}
               />
@@ -285,6 +304,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
               <TransactionList
                 transactions={transactions}
                 onEdit={handleEdit}
+                onView={handleView}
                 readOnly={true}
                 isLoading={isPending}
               />
@@ -313,6 +333,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
             <TransactionList
               transactions={transactions}
               onEdit={handleEdit}
+              onView={handleView}
               readOnly={false}
               isLoading={isPending}
             />
@@ -325,6 +346,15 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
           initialData={editingTransaction as any}
           open={isEditOpen}
           onOpenChange={onOpenChange}
+        />
+
+        {/* View Modal */}
+        <TransactionDetailsModal
+          transaction={viewingTransaction}
+          open={isViewOpen}
+          onOpenChange={setIsViewOpen}
+          onEdit={handleEditFromView}
+          readOnly={scope === 'family'}
         />
       </div>
     </>
