@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useTransition } from "react";
+import { useState, useCallback, useTransition, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -51,10 +51,11 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   const from = searchParams.get("from");
   const to = searchParams.get("to");
 
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
+  const dateRange = useMemo(() => ({
     from: from ? new Date(from) : undefined,
     to: to ? new Date(to) : undefined,
-  });
+  }), [from, to]);
+
 
   const updateFilters = useCallback((updates: Record<string, string | null>) => {
     startTransition(() => {
@@ -75,7 +76,6 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   };
 
   const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
-    setDateRange(range || {});
     if (range?.from) {
       updateFilters({
         from: range.from.toISOString(),
@@ -205,6 +205,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
                       "w-full sm:w-[220px] justify-start text-left font-normal h-9",
                       !dateRange.from && "text-muted-foreground"
                     )}
+                    suppressHydrationWarning
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                     <span className="truncate">

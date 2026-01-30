@@ -36,6 +36,7 @@
         - [x] Implement full-page layout (no scroll limit) <!-- id: 39 -->
         - [x] Add progress bar for navigation <!-- id: 40 -->
         - [x] Fix mobile responsiveness for filters and layout <!-- id: 41 -->
+    - [x] Add global progress bar for navigation and API calls <!-- id: 43 -->
 - [ ] **Deployment**
     - [ ] Deploy to Vercel <!-- id: 21 -->
     - [ ] Configure Environment Variables on Vercel <!-- id: 22 -->

@@ -156,9 +156,6 @@ export async function getTransactions(
     where.userId = userId;
   }
 
-  console.log("getTransactions Filters:", filters);
-  console.dir(where, { depth: null });
-
   try {
     const transactions = await prisma.transaction.findMany({
       where,
