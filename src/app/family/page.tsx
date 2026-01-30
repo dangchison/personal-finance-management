@@ -1,5 +1,8 @@
 import { getFamily } from "@/actions/family";
 import { FamilyManagement } from "@/components/family/family-management";
+
+export const dynamic = "force-dynamic";
+
 import { PageHeader } from "@/components/ui/page-header";
 
 export default async function FamilyPage() {
@@ -10,7 +13,7 @@ export default async function FamilyPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <PageHeader title="Quản lý Gia đình" />
 
-        <FamilyManagement initialFamily={family as any} />
+        <FamilyManagement initialFamily={family} />
       </div>
     </div>
   );

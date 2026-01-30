@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFamily, joinFamily, leaveFamily } from "@/actions/family";
 import { toast } from "sonner";
-import { Copy, LogOut, Users, UserPlus } from "lucide-react";
+import { Copy, LogOut, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   AlertDialog,
@@ -27,7 +27,7 @@ import {
 interface FamilyMember {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
   image: string | null;
 }
 

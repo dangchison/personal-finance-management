@@ -60,3 +60,11 @@
     - [x] Update Dashboard & Navigation <!-- id: 49 -->
 - [x] **Polish**
     - [x] Final UI/UX Polish (Dark mode, Animations) <!-- id: 26 -->
+
+## Sprint 4: Codebase Cleanup & Optimization
+- [x] **Cleanup**
+    - [x] Remove unused packages, variables, and files <!-- id: 50 -->
+    - [x] Remove unnecessary logs (`console.log`) <!-- id: 51 -->
+    - [x] Remove duplicate/redundant code <!-- id: 52 -->
+- [x] **Refactoring**
+    - [x] Refactor complex functions (Extracted TransactionForm) <!-- id: 53 -->
