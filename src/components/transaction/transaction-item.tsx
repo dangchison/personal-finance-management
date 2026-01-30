@@ -3,6 +3,7 @@
 import { ArrowDownLeft, ArrowUpRight, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TransactionWithCategory } from "@/actions/transaction";
+import { formatCurrency } from "@/lib/format-currency";
 
 interface TransactionItemProps {
   transaction: TransactionWithCategory;
@@ -57,7 +58,7 @@ export function TransactionItem({ transaction, onView, readOnly = false }: Trans
           >
             <div>
               {transaction.type === "INCOME" ? "+" : "-"}
-              {new Intl.NumberFormat("vi-VN").format(transaction.amount)} ₫
+              {formatCurrency(transaction.amount)}
             </div>
           </div>
 

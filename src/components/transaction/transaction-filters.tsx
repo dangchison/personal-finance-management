@@ -2,13 +2,13 @@
 
 import { Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { Filter, CalendarIcon } from "lucide-react";
+import { Filter, CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { startOfMonth, endOfMonth, setMonth, setYear } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface TransactionFiltersProps {
   // Current values
@@ -32,6 +32,16 @@ interface TransactionFiltersProps {
   onToggleFilters: () => void;
 }
 
+const MONTHS_SHORT = [
+  "Th1", "Th2", "Th3", "Th4", "Th5", "Th6",
+  "Th7", "Th8", "Th9", "Th10", "Th11", "Th12"
+];
+
+const MONTHS_FULL = [
+  "Tháng Một", "Tháng Hai", "Tháng Ba", "Tháng Tư", "Tháng Năm", "Tháng Sáu",
+  "Tháng Bảy", "Tháng Tám", "Tháng Chín", "Tháng Mười", "Tháng Mười Một", "Tháng Mười Hai"
+];
+
 export function TransactionFilters({
   categoryId,
   memberId = "all",
@@ -46,6 +56,54 @@ export function TransactionFilters({
   onDateRangeChange,
   onToggleFilters,
 }: TransactionFiltersProps) {
+  // Local state for selected month/year
+  const currentDate = dateRange?.from || new Date();
+  const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth());
+  const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  // Sync local state when parent dateRange changes
+  useEffect(() => {
+    if (dateRange?.from) {
+      setSelectedMonth(dateRange.from.getMonth());
+      setSelectedYear(dateRange.from.getFullYear());
+    }
+  }, [dateRange]);
+
+  // Get current date for comparison
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  // Handle month selection
+  const handleMonthClick = (monthIndex: number) => {
+    // Don't allow selecting future months
+    if (selectedYear === currentYear && monthIndex > currentMonth) {
+      return;
+    }
+
+    setSelectedMonth(monthIndex);
+
+    const date = setYear(setMonth(new Date(), monthIndex), selectedYear);
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
+
+    onDateRangeChange({
+      from: monthStart,
+      to: monthEnd,
+    });
+
+    setIsPopoverOpen(false);
+  };
+
+  // Handle year navigation
+  const handleYearChange = (direction: 'prev' | 'next') => {
+    if (direction === 'next' && selectedYear >= currentYear) {
+      return; // Don't allow going beyond current year
+    }
+    setSelectedYear(prev => direction === 'prev' ? prev - 1 : prev + 1);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {!hideTrigger && (
@@ -93,56 +151,72 @@ export function TransactionFilters({
             </Select>
           )}
 
-          {/* Date Picker */}
-          <Popover>
+          {/* Month Picker */}
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
               <Button
-                id="date"
+                id="month"
                 variant={"outline"}
                 className={cn(
-                  "w-full sm:w-[220px] justify-start text-left font-normal h-9",
-                  !dateRange.from && "text-muted-foreground"
+                  "w-full sm:w-[180px] justify-start text-left font-normal h-9"
                 )}
                 suppressHydrationWarning
               >
                 <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
                 <span className="truncate">
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "dd/MM", { locale: vi })} -{" "}
-                        {format(dateRange.to, "dd/MM", { locale: vi })}
-                      </>
-                    ) : (
-                      format(dateRange.from, "dd/MM/yyyy", { locale: vi })
-                    )
-                  ) : (
-                    "Chọn ngày"
-                  )}
+                  {MONTHS_FULL[selectedMonth]} {selectedYear}
                 </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange.from}
-                selected={dateRange as any}
-                onSelect={onDateRangeChange as any}
-                numberOfMonths={2}
-                locale={vi}
-                className="hidden sm:block"
-              />
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange.from}
-                selected={dateRange as any}
-                onSelect={onDateRangeChange as any}
-                numberOfMonths={1}
-                locale={vi}
-                className="block sm:hidden"
-              />
+            <PopoverContent className="w-[280px] p-4" align="end">
+              {/* Year Navigation */}
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => handleYearChange('prev')}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="font-semibold text-sm">{selectedYear}</div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => handleYearChange('next')}
+                  disabled={selectedYear >= currentYear}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Month Grid */}
+              <div className="grid grid-cols-4 gap-2">
+                {MONTHS_SHORT.map((month, index) => {
+                  const isFuture = selectedYear === currentYear && index > currentMonth;
+                  const isSelected = selectedMonth === index && selectedYear === currentDate.getFullYear();
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => handleMonthClick(index)}
+                      disabled={isFuture}
+                      className={cn(
+                        "h-10 rounded-md text-sm font-medium transition-colors",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background"
+                      )}
+                    >
+                      {month}
+                    </button>
+                  );
+                })}
+              </div>
             </PopoverContent>
           </Popover>
         </div>

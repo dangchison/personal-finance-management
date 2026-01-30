@@ -51,10 +51,11 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         {!isControlled && (
           <DialogTrigger asChild>
-            <Button className="h-20 flex-col gap-2 " variant="secondary">
-              <Plus className="h-6 w-6" />
-              <span>Thêm mới</span>
-            </Button>
+            <button className="relative h-20 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-2 overflow-hidden group cursor-pointer">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <Plus className="h-6 w-6 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
+              <span className="text-sm font-medium relative z-10">Thêm mới</span>
+            </button>
           </DialogTrigger>
         )}
         <DialogContent
@@ -78,10 +79,11 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
     <Sheet open={open} onOpenChange={handleOpenChange}>
       {!isControlled && (
         <SheetTrigger asChild>
-          <Button className="h-20 flex-col gap-2 " variant="secondary">
-            <Plus className="h-6 w-6" />
-            <span>Thêm mới</span>
-          </Button>
+          <button className="relative h-20 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-2 overflow-hidden group cursor-pointer">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <Plus className="h-6 w-6 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
+            <span className="text-sm font-medium relative z-10">Thêm mới</span>
+          </button>
         </SheetTrigger>
       )}
       <SheetContent

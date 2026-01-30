@@ -2,6 +2,7 @@
 
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { formatCurrencyFull } from "@/lib/format-currency";
 
 interface BudgetProgressProps {
   categoryName: string;
@@ -32,19 +33,12 @@ export function BudgetProgress({
       percentage >= 80 ? "bg-yellow-500" :
         "bg-emerald-500";
 
-  const formatMoney = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
-
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex justify-between text-sm font-medium">
         <span>{categoryName}</span>
         <span className={cn(isOverBudget ? "text-red-500" : "text-muted-foreground")}>
-          {formatMoney(spent)} / {formatMoney(total)}
+          {formatCurrencyFull(spent)} / {formatCurrencyFull(total)}
         </span>
       </div>
       <Progress

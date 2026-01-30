@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, useCallback, useTransition, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { List, BarChart3, Users, Filter, Loader2 } from "lucide-react";
+import { List, BarChart3, Users, Filter } from "lucide-react";
 import { UserNav } from "@/components/auth/user-nav";
 import { AddTransaction } from "@/components/transaction/add-transaction";
 import { TransactionList } from "@/components/transaction/transaction-list";
 import { Category } from "@prisma/client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { CountUpAnimation } from "@/components/ui/count-up-animation";
 import { TransactionDetailsModal } from "@/components/transaction/transaction-details-modal";
+import { QuickActionButton } from "./quick-action-button";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionFilters } from "@/components/transaction/transaction-filters";
@@ -38,12 +40,10 @@ interface DashboardClientProps {
 
 export function DashboardClient({ user, categories, transactions, stats, familyMembers = [], budgetProgress = [] }: DashboardClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [viewingTransaction, setViewingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const [showFilters, setShowFilters] = useState(false);
   const [navLoading, setNavLoading] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(() => {
@@ -57,47 +57,20 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
     return false;
   });
 
+  // Use URL filters hook
+  const { updateFilters, updateDateRange, dateRange, isPending, searchParams } = useUrlFilters("/dashboard");
 
   // Filter States (Synced with URL)
   const scope = searchParams.get("scope") || "personal";
   const categoryId = searchParams.get("categoryId") || "all";
   const memberId = searchParams.get("memberId") || "all";
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-
-  const dateRange = useMemo(() => ({
-    from: from ? new Date(from) : undefined,
-    to: to ? new Date(to) : undefined,
-  }), [from, to]);
-
-
-  const updateFilters = useCallback((updates: Record<string, string | null>) => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value === null || value === "all") {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
-      });
-      router.push(`/dashboard?${params.toString()}`);
-    });
-  }, [searchParams, router]);
 
   const handleTabChange = (value: string) => {
     updateFilters({ scope: value, memberId: null }); // Reset member filter on scope switch
   };
 
   const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
-    if (range?.from) {
-      updateFilters({
-        from: range.from.toISOString(),
-        to: range.to ? range.to.toISOString() : null,
-      });
-    } else {
-      updateFilters({ from: null, to: null });
-    }
+    updateDateRange(range);
   };
 
   const handleEdit = (transaction: TransactionWithCategory) => {
@@ -147,25 +120,28 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="bg-primary text-primary-foreground">
+          {/* Chi tiêu Card - White bg with Indigo shadow */}
+          <Card className="relative overflow-hidden bg-card shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/35 transition-all duration-300">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Chi tiêu tháng này</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">
+              <div className="text-3xl font-bold text-blue-500">
                 <CountUpAnimation end={stats.expense} /> ₫
               </div>
-              <p className="text-xs opacity-80 mt-1">So với tháng trước: --%</p>
+              <p className="text-xs text-muted-foreground mt-1">So với tháng trước: --%</p>
             </CardContent>
           </Card>
-          <Card>
+
+          {/* Ngân sách Card - White bg with Blue shadow */}
+          <Card className="relative overflow-hidden bg-card shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 transition-all duration-300">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Ngân sách còn lại</CardTitle>
             </CardHeader>
             <CardContent>
               {budgetProgress && budgetProgress.length > 0 ? (
                 <>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                     <CountUpAnimation
                       end={budgetProgress.reduce((acc, b) => acc + (b.amount - b.spent), 0)}
                     /> ₫
@@ -177,7 +153,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
               ) : (
                 <>
                   <div className="text-sm text-muted-foreground mb-2">Chưa thiết lập ngân sách</div>
-                  <Button variant="outline" size="sm" asChild className="w-full h-8">
+                  <Button variant="outline" size="sm" asChild className="w-full h-8 border-blue-300 text-blue-600 hover:bg-blue-50">
                     <Link href="/settings?tab=budget">Thiết lập ngay</Link>
                   </Button>
                 </>
@@ -189,59 +165,47 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
         {/* Quick Actions Types */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <AddTransaction categories={categories} />
-          <Button
-            variant="secondary"
-            className="h-20 flex-col gap-2"
+
+          <QuickActionButton
+            icon={List}
+            label="Lịch sử"
             onClick={() => {
               setNavLoading('history');
               router.push('/transactions');
             }}
+            gradient="bg-gradient-to-br from-sky-500 to-blue-600"
+            shadowColor="shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40"
+            isLoading={navLoading === 'history'}
             disabled={navLoading !== null}
-          >
-            {navLoading === 'history' ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <List className="w-6 h-6" />
-            )}
-            <span>Lịch sử</span>
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-20 flex-col gap-2"
+          />
+
+          <QuickActionButton
+            icon={BarChart3}
+            label="Báo cáo"
             onClick={() => {
               setNavLoading('reports');
               router.push('/reports');
             }}
+            gradient="bg-gradient-to-br from-indigo-500 to-purple-600"
+            shadowColor="shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40"
+            isLoading={navLoading === 'reports'}
             disabled={navLoading !== null}
-          >
-            {navLoading === 'reports' ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <BarChart3 className="w-6 h-6" />
-            )}
-            <span>Báo cáo</span>
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-20 flex-col gap-2"
+          />
+
+          <QuickActionButton
+            icon={Users}
+            label="Gia đình"
             onClick={() => {
               setNavLoading('family');
               router.push('/family');
             }}
+            gradient="bg-gradient-to-br from-blue-500 to-cyan-600"
+            shadowColor="shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40"
+            isLoading={navLoading === 'family'}
             disabled={navLoading !== null}
-          >
-            {navLoading === 'family' ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <Users className="w-6 h-6" />
-            )}
-            <span>Gia đình</span>
-          </Button>
+          />
         </div>
 
-
-
-        {/* Main Content Area with Tabs & Filters */}
         {/* Main Content Area with Tabs & Filters */}
         {familyMembers.length > 0 ? (
           <Tabs defaultValue={scope} onValueChange={handleTabChange} className="space-y-4">
@@ -266,7 +230,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
               <TransactionFilters
                 categoryId={categoryId}
                 memberId={memberId}
-                dateRange={dateRange}
+                dateRange={dateRange || {}}
                 categories={categories}
                 familyMembers={familyMembers}
                 scope={scope as "personal" | "family"}
@@ -320,7 +284,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
 
               <TransactionFilters
                 categoryId={categoryId}
-                dateRange={dateRange}
+                dateRange={dateRange || {}}
                 categories={categories}
                 scope="personal"
                 showFilters={showFilters}

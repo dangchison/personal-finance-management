@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback } from "react";
-import { TransactionList } from "./transaction-list";
+import { useState } from "react";
+import { AddTransaction } from "@/components/transaction/add-transaction";
+import { TransactionList } from "@/components/transaction/transaction-list";
 import { Category } from "@prisma/client";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, FilterX, Filter } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { AddTransaction } from "./add-transaction";
-import { TransactionDetailsModal } from "./transaction-details-modal";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DateRange } from "react-day-picker";
-import { TransactionFilters } from "./transaction-filters";
 import { TransactionWithCategory } from "@/actions/transaction";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TransactionFilters } from "./transaction-filters";
+import { TransactionDetailsModal } from "./transaction-details-modal";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
+import { Button } from "@/components/ui/button";
+import { FilterX, Filter } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Member interface based on common schema
 interface Member {
@@ -24,8 +24,6 @@ interface TransactionsClientProps {
   initialTransactions: TransactionWithCategory[];
   categories: Category[];
   familyMembers: Member[];
-  currentPage: number;
-  hasNextPage: boolean;
   initialScope: "personal" | "family";
 }
 
@@ -33,61 +31,24 @@ export function TransactionsClient({
   initialTransactions,
   categories,
   familyMembers,
-  currentPage,
-  hasNextPage,
   initialScope
 }: TransactionsClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [viewingTransaction, setViewingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
+
+  // Use URL filters hook
+  const { updateFilters, updateDateRange, dateRange, isPending, searchParams } = useUrlFilters("/transactions");
 
   // Filters State
   const scope = searchParams.get("scope") || initialScope;
   const categoryId = searchParams.get("categoryId") || "all";
   const memberId = searchParams.get("memberId") || "all";
-  const from = searchParams.get("from");
-  const to = searchParams.get("to");
-
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: from ? new Date(from) : undefined,
-    to: to ? new Date(to) : undefined,
-  });
-
-  const [showFilters, setShowFilters] = useState(true);
-
-  const updateFilters = useCallback((updates: Record<string, string | undefined | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    // Always start from page 1 when changing filters
-    params.set("page", "1");
-
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === "all") {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
-
-    startTransition(() => {
-      router.push(`/transactions?${params.toString()}`);
-    });
-  }, [router, searchParams]);
 
   const handleTabChange = (value: string) => {
     updateFilters({ scope: value, memberId: "all" });
-  };
-
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", newPage.toString());
-    startTransition(() => {
-      router.push(`/transactions?${params.toString()}`);
-    });
   };
 
   const handleEdit = (transaction: TransactionWithCategory) => {
@@ -118,26 +79,11 @@ export function TransactionsClient({
   };
 
   const clearFilters = () => {
-    setDate(undefined);
-    startTransition(() => {
-      router.push("/transactions");
-    });
+    updateFilters({ categoryId: null, memberId: null, from: null, to: null });
   };
 
-  useEffect(() => {
-    if (date?.from && date?.to) {
-      updateFilters({
-        from: date.from.toISOString(),
-        to: date.to.toISOString(),
-      });
-    } else if (!date?.from && !date?.to && (from || to)) {
-      // Only update if we previously had dates
-      updateFilters({ from: null, to: null });
-    }
-  }, [date, from, to, updateFilters]);
-
   return (
-    <div className="space-y-6 relative">
+    <div className="flex flex-col h-full relative">
       {/* Top Progress Bar */}
       {isPending && (
         <div className="fixed top-0 left-0 right-0 h-1 z-[100] bg-muted overflow-hidden">
@@ -145,8 +91,8 @@ export function TransactionsClient({
         </div>
       )}
 
-      {/* Scope Tabs & Filters */}
-      <div className="space-y-4">
+      {/* Scope Tabs & Filters - Fixed at top */}
+      <div className="flex-none space-y-4 mb-4">
         {familyMembers.length > 0 && (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             <Tabs value={scope} onValueChange={handleTabChange} className="w-full sm:w-auto">
@@ -171,7 +117,7 @@ export function TransactionsClient({
         <TransactionFilters
           categoryId={categoryId}
           memberId={memberId}
-          dateRange={date || {}}
+          dateRange={dateRange || {}}
           categories={categories}
           familyMembers={familyMembers}
           scope={scope as "personal" | "family"}
@@ -179,12 +125,12 @@ export function TransactionsClient({
           hideTrigger={familyMembers.length > 0}
           onCategoryChange={(v) => updateFilters({ categoryId: v })}
           onMemberChange={(v) => updateFilters({ memberId: v })}
-          onDateRangeChange={setDate as any}
+          onDateRangeChange={updateDateRange}
           onToggleFilters={() => setShowFilters(!showFilters)}
         />
 
         {/* Keep Clear Filters button separate */}
-        {(categoryId !== "all" || memberId !== "all" || from || to) && (
+        {(categoryId !== "all" || memberId !== "all" || dateRange) && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full sm:w-auto">
             <FilterX className="h-4 w-4 mr-2" />
             Xóa bộ lọc
@@ -192,8 +138,8 @@ export function TransactionsClient({
         )}
       </div>
 
-      {/* Transaction List - No height limit, full page scroll */}
-      <div className={isPending ? "opacity-50 transition-opacity" : ""}>
+      {/* Transaction List - Scrollable area */}
+      <div className={cn("flex-1 overflow-y-auto", isPending && "opacity-50 transition-opacity")}>
         <TransactionList
           transactions={initialTransactions}
           onEdit={handleEdit}
@@ -202,26 +148,6 @@ export function TransactionsClient({
           isLoading={isPending}
           isFullPage={true}
         />
-      </div>
-
-      <div className="flex items-center justify-center gap-4 pt-8 pb-12">
-        <Button
-          variant="outline"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage <= 1 || isPending}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Trước
-        </Button>
-        <span className="text-sm font-medium">Trang {currentPage}</span>
-        <Button
-          variant="outline"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={!hasNextPage || isPending}
-        >
-          Sau
-          <ChevronRight className="h-4 w-4 ml-2" />
-        </Button>
       </div>
 
       <AddTransaction

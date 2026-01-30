@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatNumber as formatNumberValue } from "@/lib/format-currency";
 
 interface CountUpAnimationProps {
   end: number;
@@ -39,5 +40,5 @@ export function CountUpAnimation({ end, duration = 1500, formatNumber }: CountUp
     return <>{formatNumber(count)}</>;
   }
 
-  return <>{new Intl.NumberFormat("vi-VN").format(count)}</>;
+  return <>{formatNumberValue(count)}</>;
 }

@@ -18,9 +18,6 @@ export default async function TransactionsPage({
   }
 
   const resolvedSearchParams = await searchParams;
-  const page = Number(resolvedSearchParams.page) || 1;
-  const limit = 50; // Increased limit for history page
-  const offset = (page - 1) * limit;
 
   const scope = (resolvedSearchParams.scope as "personal" | "family") || "personal";
   const categoryId = resolvedSearchParams.categoryId as string;
@@ -30,7 +27,7 @@ export default async function TransactionsPage({
 
   const [categories, transactions, familyMembers] = await Promise.all([
     getCategories(),
-    getTransactions(limit, offset, {
+    getTransactions(1000, 0, { // Fetch many transactions (will use react-window)
       scope,
       categoryId,
       memberId,
@@ -41,20 +38,22 @@ export default async function TransactionsPage({
   ]);
 
   return (
-    <div className="p-4 space-y-6 max-w-5xl mx-auto min-h-screen">
-      <PageHeader
-        title="Lịch sử giao dịch"
-        description="Xem lại toàn bộ chi tiêu của bạn"
-      />
+    <div className="flex flex-col h-screen max-w-5xl mx-auto">
+      <div className="flex-none p-4 pb-0">
+        <PageHeader
+          title="Lịch sử giao dịch"
+          description="Xem lại toàn bộ chi tiêu của bạn"
+        />
+      </div>
 
-      <TransactionsClient
-        initialTransactions={transactions}
-        categories={categories}
-        familyMembers={familyMembers}
-        currentPage={page}
-        hasNextPage={transactions.length === limit}
-        initialScope={scope}
-      />
+      <div className="flex-1 overflow-hidden p-4">
+        <TransactionsClient
+          initialTransactions={transactions}
+          categories={categories}
+          familyMembers={familyMembers}
+          initialScope={scope}
+        />
+      </div>
     </div>
   );
 }

@@ -12,51 +12,26 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { DateRange } from "react-day-picker";
 
 interface ReportFiltersProps {
   initialScope: "personal" | "family";
-  dateRange: DateRange | undefined;
   hasFamily: boolean;
 }
 
 export function ReportFilters({
   initialScope,
-  dateRange,
   hasFamily,
 }: ReportFiltersProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [date, setDate] = useState<DateRange | undefined>(dateRange);
-
-  const updateFilters = (updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null) {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
-    router.push(`/reports?${params.toString()}`);
-  };
+  const { updateFilters, updateDateRange, dateRange } = useUrlFilters("/reports");
 
   const handleScopeChange = (value: string) => {
     updateFilters({ scope: value });
   };
 
   const handleDateSelect = (range: DateRange | undefined) => {
-    setDate(range);
-    if (range?.from) {
-      updateFilters({
-        from: range.from.toISOString(),
-        to: range.to ? range.to.toISOString() : null,
-      });
-    } else {
-      updateFilters({ from: null, to: null });
-    }
+    updateDateRange(range);
   };
 
   return (
@@ -84,18 +59,18 @@ export function ReportFilters({
               variant={"outline"}
               className={cn(
                 "w-[260px] justify-start text-left font-normal",
-                !date && "text-muted-foreground"
+                !dateRange && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {date?.from ? (
-                date.to ? (
+              {dateRange?.from ? (
+                dateRange.to ? (
                   <>
-                    {format(date.from, "dd/MM/yyyy", { locale: vi })} -{" "}
-                    {format(date.to, "dd/MM/yyyy", { locale: vi })}
+                    {format(dateRange.from, "dd/MM/yyyy", { locale: vi })} -{" "}
+                    {format(dateRange.to, "dd/MM/yyyy", { locale: vi })}
                   </>
                 ) : (
-                  format(date.from, "dd/MM/yyyy", { locale: vi })
+                  format(dateRange.from, "dd/MM/yyyy", { locale: vi })
                 )
               ) : (
                 <span>Chọn khoảng thời gian</span>
@@ -106,8 +81,8 @@ export function ReportFilters({
             <Calendar
               initialFocus
               mode="range"
-              defaultMonth={date?.from}
-              selected={date}
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
               onSelect={handleDateSelect}
               numberOfMonths={2}
               locale={vi}

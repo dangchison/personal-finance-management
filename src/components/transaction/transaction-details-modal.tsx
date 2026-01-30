@@ -7,6 +7,7 @@ import { Edit, Calendar, Tag, Hash, ArrowDownLeft, ArrowUpRight } from "lucide-r
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format-currency";
 import {
   Dialog,
   DialogContent,
@@ -77,7 +78,7 @@ export function TransactionDetailsModal({
             )}
           >
             {transaction.type === "INCOME" ? "+" : "-"}
-            {new Intl.NumberFormat("vi-VN").format(transaction.amount)} ₫
+            {formatCurrency(transaction.amount)}
           </p>
         </div>
       </div>

@@ -55,7 +55,6 @@ export default async function ReportsPage({
 
         <ReportFilters
           initialScope={scope}
-          dateRange={{ from: startDate, to: endDate }}
           hasFamily={hasFamily}
         />
       </div>

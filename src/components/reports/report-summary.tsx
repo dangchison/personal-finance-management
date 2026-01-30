@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowDown } from "lucide-react";
+import { formatCurrency } from "@/lib/format-currency";
 
 interface ReportSummaryProps {
   expense: number;
@@ -15,7 +16,7 @@ export function ReportSummary({ expense }: ReportSummaryProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-red-600">
-            {new Intl.NumberFormat("vi-VN").format(expense)} ₫
+            {formatCurrency(expense)}
           </div>
         </CardContent>
       </Card>
