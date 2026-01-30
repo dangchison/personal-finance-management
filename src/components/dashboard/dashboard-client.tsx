@@ -4,20 +4,15 @@ import { useState, useCallback, useTransition, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { List, BarChart3, Users, Calendar as CalendarIcon } from "lucide-react";
+import { List, BarChart3, Users } from "lucide-react";
 import { UserNav } from "@/components/auth/user-nav";
 import { AddTransaction } from "@/components/transaction/add-transaction";
 import { TransactionList } from "@/components/transaction/transaction-list";
 import { Category } from "@prisma/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { TransactionFilters } from "@/components/transaction/transaction-filters";
 
 // Match TransactionList requirements
 import { TransactionWithCategory } from "@/actions/transaction";
@@ -43,6 +38,8 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [showFilters, setShowFilters] = useState(false);
+
 
   // Filter States (Synced with URL)
   const scope = searchParams.get("scope") || "personal";
@@ -159,84 +156,27 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
       {/* Main Content Area with Tabs & Filters */}
       {familyMembers.length > 0 ? (
         <Tabs defaultValue={scope} onValueChange={handleTabChange} className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            <TabsList className="grid grid-cols-2 w-full sm:w-[280px]">
-              <TabsTrigger value="personal">Cá nhân</TabsTrigger>
-              <TabsTrigger value="family">Gia đình</TabsTrigger>
-            </TabsList>
-
-            {/* Filters Bar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              {/* Category Filter */}
-              <Select value={categoryId} onValueChange={(val) => updateFilters({ categoryId: val })}>
-                <SelectTrigger className="w-full sm:w-[160px] h-9">
-                  <SelectValue placeholder="Danh mục" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="all">Tất cả danh mục</SelectItem>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Member Filter (Family Only) */}
-              {scope === 'family' && (
-                <Select value={memberId} onValueChange={(val) => updateFilters({ memberId: val })}>
-                  <SelectTrigger className="w-full sm:w-[160px] h-9">
-                    <SelectValue placeholder="Thành viên" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả mọi người</SelectItem>
-                    {familyMembers.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.name || "Thành viên"}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Date Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="date"
-                    variant={"outline"}
-                    className={cn(
-                      "w-full sm:w-[220px] justify-start text-left font-normal h-9",
-                      !dateRange.from && "text-muted-foreground"
-                    )}
-                    suppressHydrationWarning
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                    <span className="truncate">
-                      {dateRange.from ? (
-                        dateRange.to ? (
-                          <>
-                            {format(dateRange.from, "dd/MM", { locale: vi })} -{" "}
-                            {format(dateRange.to, "dd/MM", { locale: vi })}
-                          </>
-                        ) : (
-                          format(dateRange.from, "dd/MM/yyyy", { locale: vi })
-                        )
-                      ) : (
-                        "Chọn ngày"
-                      )}
-                    </span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange.from}
-                    selected={dateRange as any}
-                    onSelect={handleDateSelect as any}
-                    numberOfMonths={1}
-                    locale={vi}
-                  />
-                </PopoverContent>
-              </Popover>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <TabsList className="grid grid-cols-2 w-full sm:w-[280px]">
+                <TabsTrigger value="personal">Cá nhân</TabsTrigger>
+                <TabsTrigger value="family">Gia đình</TabsTrigger>
+              </TabsList>
             </div>
+
+            <TransactionFilters
+              categoryId={categoryId}
+              memberId={memberId}
+              dateRange={dateRange}
+              categories={categories}
+              familyMembers={familyMembers}
+              scope={scope as "personal" | "family"}
+              showFilters={showFilters}
+              onCategoryChange={(val) => updateFilters({ categoryId: val })}
+              onMemberChange={(val) => updateFilters({ memberId: val })}
+              onDateRangeChange={handleDateSelect}
+              onToggleFilters={() => setShowFilters(!showFilters)}
+            />
           </div>
 
           <TabsContent value="personal" className="space-y-4">
@@ -271,63 +211,21 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
       ) : (
         <div className="space-y-4">
           {/* No Tabs - Personal Only View */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-bold">Giao dịch cá nhân</h2>
-
-            {/* Filters Bar (Simpler without member filter) */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              <Select value={categoryId} onValueChange={(val) => updateFilters({ categoryId: val })}>
-                <SelectTrigger className="w-full sm:w-[160px] h-9">
-                  <SelectValue placeholder="Danh mục" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="all">Tất cả danh mục</SelectItem>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="date"
-                    variant={"outline"}
-                    className={cn(
-                      "w-full sm:w-[220px] justify-start text-left font-normal h-9",
-                      !dateRange.from && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                    <span className="truncate">
-                      {dateRange.from ? (
-                        dateRange.to ? (
-                          <>
-                            {format(dateRange.from, "dd/MM", { locale: vi })} -{" "}
-                            {format(dateRange.to, "dd/MM", { locale: vi })}
-                          </>
-                        ) : (
-                          format(dateRange.from, "dd/MM/yyyy", { locale: vi })
-                        )
-                      ) : (
-                        "Chọn ngày"
-                      )}
-                    </span>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange.from}
-                    selected={dateRange as any}
-                    onSelect={handleDateSelect as any}
-                    numberOfMonths={1}
-                    locale={vi}
-                  />
-                </PopoverContent>
-              </Popover>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <h2 className="text-xl font-bold">Giao dịch cá nhân</h2>
             </div>
+
+            <TransactionFilters
+              categoryId={categoryId}
+              dateRange={dateRange}
+              categories={categories}
+              scope="personal"
+              showFilters={showFilters}
+              onCategoryChange={(val) => updateFilters({ categoryId: val })}
+              onDateRangeChange={handleDateSelect}
+              onToggleFilters={() => setShowFilters(!showFilters)}
+            />
           </div>
 
           <TransactionList

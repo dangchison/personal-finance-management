@@ -34,7 +34,7 @@ function LoginForm() {
       toast.error(res.error);
       setLoading(false);
     } else {
-      toast.success("Logged in successfully!");
+      toast.success("Đăng nhập thành công!");
       router.push(callbackUrl);
       // Don't set loading false here, let it spin until redirect completes
     }
@@ -43,27 +43,27 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Login</CardTitle>
-        <CardDescription>Manage your finance safely</CardDescription>
+        <CardTitle className="text-2xl font-bold">Đăng nhập</CardTitle>
+        <CardDescription>Quản lý tài chính cá nhân an toàn</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username or Email</Label>
-            <Input id="username" name="username" type="text" placeholder="admin or john@example.com" disabled={loading} required autoCapitalize="none" />
+            <Label htmlFor="username">Tên đăng nhập hoặc Email</Label>
+            <Input id="username" name="username" type="text" placeholder="admin hoặc john@example.com" disabled={loading} required autoCapitalize="none" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Mật khẩu</Label>
             <Input id="password" name="password" type="password" disabled={loading} required />
           </div>
           <Button className="w-full" type="submit" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
+          Chưa có tài khoản?{" "}
           <Link href="/register" className="font-medium text-primary hover:underline">
-            Register here
+            Đăng ký ngay
           </Link>
         </div>
       </CardContent>
@@ -74,7 +74,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-muted/50">
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Đang tải...</div>}>
         <LoginForm />
       </Suspense>
     </div>

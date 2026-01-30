@@ -25,7 +25,7 @@ export default function RegisterPage() {
       toast.error(result.error);
       setLoading(false);
     } else {
-      toast.success("Account created successfully!");
+      toast.success("Tạo tài khoản thành công!");
       router.push("/login");
       // Don't set loading false here, let it spin until redirect completes
     }
@@ -35,31 +35,31 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center min-h-screen p-4 bg-muted/50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Enter your info to get started</CardDescription>
+          <CardTitle className="text-2xl font-bold">Tạo tài khoản</CardTitle>
+          <CardDescription>Nhập thông tin để bắt đầu</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" placeholder="John Doe" disabled={loading} required />
+              <Label htmlFor="name">Họ và tên</Label>
+              <Input id="name" name="name" placeholder="Nguyễn Văn A" disabled={loading} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" name="email" type="email" placeholder="john@example.com" disabled={loading} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mật khẩu</Label>
               <Input id="password" name="password" type="password" disabled={loading} required />
             </div>
             <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "Creating account..." : "Register"}
+              {loading ? "Đang tạo tài khoản..." : "Đăng ký"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
+            Đã có tài khoản?{" "}
             <Link href="/login" className="font-medium text-primary hover:underline">
-              Login here
+              Đăng nhập ngay
             </Link>
           </div>
         </CardContent>

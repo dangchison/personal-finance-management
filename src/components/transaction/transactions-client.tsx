@@ -4,17 +4,12 @@ import { useState, useTransition, useEffect, useCallback } from "react";
 import { TransactionList } from "./transaction-list";
 import { Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, CalendarIcon, FilterX } from "lucide-react";
+import { ChevronLeft, ChevronRight, FilterX } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AddTransaction } from "./add-transaction";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
-import { cn } from "@/lib/utils";
+import { TransactionFilters } from "./transaction-filters";
 import { TransactionWithCategory } from "@/actions/transaction";
 
 // Member interface based on common schema
@@ -58,6 +53,8 @@ export function TransactionsClient({
     from: from ? new Date(from) : undefined,
     to: to ? new Date(to) : undefined,
   });
+
+  const [showFilters, setShowFilters] = useState(true);
 
   const updateFilters = useCallback((updates: Record<string, string | undefined | null>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -141,97 +138,31 @@ export function TransactionsClient({
           </Tabs>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
-          {/* Category Filter */}
-          <Select value={categoryId} onValueChange={(v) => updateFilters({ categoryId: v })}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Tất cả danh mục" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả danh mục</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <TransactionFilters
+          categoryId={categoryId}
+          memberId={memberId}
+          dateRange={date || {}}
+          categories={categories}
+          familyMembers={familyMembers}
+          scope={scope as "personal" | "family"}
+          showFilters={showFilters}
+          onCategoryChange={(v) => updateFilters({ categoryId: v })}
+          onMemberChange={(v) => updateFilters({ memberId: v })}
+          onDateRangeChange={setDate as any}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+        />
 
-          {/* Member Filter (only in Family mode) */}
-          {scope === "family" && (
-            <Select value={memberId} onValueChange={(v) => updateFilters({ memberId: v })}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Tất cả thành viên" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả thành viên</SelectItem>
-                {familyMembers.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.name || "Unnamed"}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {/* Date Range Filter */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full sm:w-[280px] justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                <span className="truncate">
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "dd/MM/yyyy")} - {format(date.to, "dd/MM/yyyy")}
-                      </>
-                    ) : (
-                      format(date.from, "dd/MM/yyyy")
-                    )
-                  ) : (
-                    "Chọn khoảng ngày"
-                  )}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={setDate}
-                numberOfMonths={2}
-                locale={vi}
-                className="hidden sm:block"
-              />
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={date?.from}
-                selected={date}
-                onSelect={setDate}
-                numberOfMonths={1}
-                locale={vi}
-                className="block sm:hidden"
-              />
-            </PopoverContent>
-          </Popover>
-
-          {/* Clear Filters */}
-          {(categoryId !== "all" || memberId !== "all" || from || to) && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full sm:w-auto">
-              <FilterX className="h-4 w-4 mr-2" />
-              Xóa bộ lọc
-            </Button>
-          )}
-        </div>
+        {/* Keep Clear Filters button separate */}
+        {(categoryId !== "all" || memberId !== "all" || from || to) && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full sm:w-auto">
+            <FilterX className="h-4 w-4 mr-2" />
+            Xóa bộ lọc
+          </Button>
+        )}
       </div>
 
       {/* Transaction List - No height limit, full page scroll */}
-      <div className={cn(isPending && "opacity-50 transition-opacity")}>
+      <div className={isPending ? "opacity-50 transition-opacity" : ""}>
         <TransactionList
           transactions={initialTransactions}
           onEdit={handleEdit}

@@ -10,7 +10,7 @@
     - [x] Set up NextAuth.js <!-- id: 3 -->
     - [x] Create Login/Register UI <!-- id: 15 -->
     - [x] Implement Protect Route Middleware <!-- id: 16 -->
-- [x] **Authentication & User Management**
+- [ ] **Authentication & User Management**
     - [x] Update Schema (Add username) <!-- id: 31 -->
     - [x] Seed Admin User <!-- id: 32 -->
     - [x] Allow Login with Username/Email <!-- id: 33 -->
@@ -23,7 +23,7 @@
     - [x] Display Current Month Total <!-- id: 10 -->
 
 ## Sprint 2: Family & Sharing
-- [x] **Family Management**
+- [ ] **Family Management**
     - [x] Create Family/Group Schema <!-- id: 5 -->
     - [x] Implement "Create Family" & "Invite Member" logic <!-- id: 6 -->
     - [x] Implement "Leave Family" logic <!-- id: 37 -->
@@ -37,9 +37,13 @@
         - [x] Add progress bar for navigation <!-- id: 40 -->
         - [x] Fix mobile responsiveness for filters and layout <!-- id: 41 -->
     - [x] Add global progress bar for navigation and API calls <!-- id: 43 -->
-- [ ] **Deployment**
-    - [ ] Deploy to Vercel <!-- id: 21 -->
-    - [ ] Configure Environment Variables on Vercel <!-- id: 22 -->
+    - [x] **Refactoring & Optimization**
+        - [x] Extract `TransactionFilters` reusable component <!-- id: 44 -->
+        - [x] Refactor `TransactionList` & `TransactionGroup` <!-- id: 45 -->
+        - [x] Eliminate Code Duplication (Auth, Prisma Selects) <!-- id: 46 -->
+- [x] **Deployment**
+    - [x] Deploy to Vercel <!-- id: 21 -->
+    - [x] Configure Environment Variables on Vercel <!-- id: 22 -->
 
 ## Sprint 3: Analysis & Budgets
 - [ ] **Budgeting**

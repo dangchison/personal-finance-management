@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CalendarIcon, Plus, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -262,9 +263,9 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(field.value, "PPP", { locale: vi })
                         ) : (
-                          <span>Pick a date</span>
+                          <span>Chọn ngày</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>

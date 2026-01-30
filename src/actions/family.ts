@@ -1,55 +1,36 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { revalidatePath } from "next/cache";
+import { getAuthenticatedUser } from "@/lib/auth-helpers";
+import { USER_SELECT, FAMILY_WITH_USERS_SELECT, USER_SELECT_BASIC } from "@/lib/prisma-selects";
+import { revalidateDashboard } from "@/lib/revalidation";
 
 export async function createFamily(name: string) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return { error: "Unauthorized" };
-  }
-
-  const userId = (session.user as any).id;
-
   try {
+    const user = await getAuthenticatedUser();
+
     const family = await prisma.family.create({
       data: {
         name,
         users: {
-          connect: { id: userId },
+          connect: { id: user.id },
         },
       },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
-      },
+      ...FAMILY_WITH_USERS_SELECT,
     });
 
-    revalidatePath("/dashboard");
+    revalidateDashboard();
     return { data: family };
   } catch (error) {
     console.error("Error creating family:", error);
-    return { error: "Failed to create family" };
+    return { error: error instanceof Error && error.message === "Unauthorized" ? "Unauthorized" : "Failed to create family" };
   }
 }
 
 export async function joinFamily(inviteCode: string) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return { error: "Unauthorized" };
-  }
-
-  const userId = (session.user as any).id;
-
   try {
+    const user = await getAuthenticatedUser();
+
     const family = await prisma.family.findUnique({
       where: { inviteCode },
     });
@@ -59,79 +40,49 @@ export async function joinFamily(inviteCode: string) {
     }
 
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: { familyId: family.id },
     });
 
     // Re-fetch family with users to return complete data
     const updatedFamily = await prisma.family.findUnique({
       where: { id: family.id },
-      include: {
-        users: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
-      },
+      ...FAMILY_WITH_USERS_SELECT,
     });
 
-    revalidatePath("/dashboard");
+    revalidateDashboard();
     return { data: updatedFamily };
   } catch (error) {
     console.error("Error joining family:", error);
-    return { error: "Failed to join family" };
+    return { error: error instanceof Error && error.message === "Unauthorized" ? "Unauthorized" : "Failed to join family" };
   }
 }
 
 export async function leaveFamily() {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return { error: "Unauthorized" };
-  }
-
-  const userId = (session.user as any).id;
-
   try {
+    const user = await getAuthenticatedUser();
+
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: { familyId: null },
     });
 
-    revalidatePath("/dashboard");
+    revalidateDashboard();
     return { success: true };
   } catch (error) {
     console.error("Error leaving family:", error);
-    return { error: "Failed to leave family" };
+    return { error: error instanceof Error && error.message === "Unauthorized" ? "Unauthorized" : "Failed to leave family" };
   }
 }
 
 export async function getFamily() {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return null;
-  }
-
-  const userId = (session.user as any).id;
-
   try {
+    const authUser = await getAuthenticatedUser();
+
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: authUser.id },
       include: {
-        family: {
-          include: {
-            users: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-                email: true,
-              },
-            },
-          },
-        },
+        family: FAMILY_WITH_USERS_SELECT,
       },
     });
 
@@ -143,16 +94,11 @@ export async function getFamily() {
 }
 
 export async function getFamilyMembers(): Promise<{ id: string; name: string | null; image: string | null }[]> {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    return [];
-  }
-
-  const userId = (session.user as any).id;
-
   try {
+    const authUser = await getAuthenticatedUser();
+
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: authUser.id },
       select: { familyId: true },
     });
 
@@ -160,11 +106,7 @@ export async function getFamilyMembers(): Promise<{ id: string; name: string | n
 
     const members = await prisma.user.findMany({
       where: { familyId: user.familyId },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-      },
+      select: USER_SELECT_BASIC,
     });
 
     return members;
