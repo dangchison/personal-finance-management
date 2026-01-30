@@ -1,63 +1,86 @@
-# Implementation Plan - Sprint 3: Budgets & Analysis
+# Personal Finance Management - Release 1.0 Implementation Plan
 
 ## Goal Description
-Implement budgeting features to allow users/families to set spending limits. Add visual analytics (charts) to visualize income, expenses, and budget progress.
+Build and release a comprehensive Personal Finance Management application with "Family" sharing capabilities.
+This plan tracks the implemented features, covering the original Minimum Viable Product (MVP) scope through to the final polish and bug fixes.
 
 ## User Review Required
-- **Schema**: New `Budget` model linked to `Category` and `User`/`Family`.
-    - *Decision*: Budget is per Category or Global? Usually per Category + Global. Let's start with **Per Category Budget**.
-    - *Timeframe*: Monthly by default.
+> [!IMPORTANT]
+> This document reflects the final state of the application for Release 1.0, including recent critical fixes and UI enhancements.
 
-## Proposed Changes
+## Implemented Architecture & Features
 
-### Database
-#### [MODIFY] [schema.prisma](file:///Users/son.dc/Desktop/Projects/personal/prisma/schema.prisma)
-- Add `Budget` model:
-    ```prisma
-    model Budget {
-      id          String   @id @default(uuid())
-      amount      Decimal
-      categoryId  String
-      category    Category @relation(fields: [categoryId], references: [id])
-      userId      String // Creator/Owner
-      user        User     @relation(fields: [userId], references: [id])
-      familyId    String? 
-      family      Family?  @relation(fields: [familyId], references: [id])
-      period      String   @default("monthly") // "monthly"
-      createdAt   DateTime @default(now())
-      updatedAt   DateTime @updatedAt
-      
-      @@unique([categoryId, userId, familyId]) // Prevent duplicate budgets for same category
-    }
-    ```
+### 1. Core Architecture & Authentication
+**Tech Stack**: Next.js (App Router), TypeScript, Tailwind CSS, Shadcn UI, Supabase (PostgreSQL), Prisma.
+- **Authentication**: `next-auth` (v5 beta) with Prisma Adapter.
+    - [x] Login/Register with Credentials.
+    - [x] Route Protection Middleware.
+    - [x] User Extensions (Username, Settings).
 
-### Server Actions
-#### [NEW] [budget.ts](file:///Users/son.dc/Desktop/Projects/personal/src/actions/budget.ts)
-- `upsertBudget(categoryId, amount)`: Create or update budget.
-- `getBudgets()`: Fetch all budgets for current scope.
-- `getBudgetProgress()`: Calculate (Spent / Budget) * 100 per category.
+### 2. Transaction Management (Personal)
+- **Database**: `Transaction` model with support for recurring/one-time types.
+- **UI**:
+    - [x] **Add/Edit Transaction**: Mobile-responsive form with "Income/Expense" toggle.
+    - [x] **Transaction List**: Virtualized or paginated list of history.
+    - [x] **Dashboard**: Summary cards (Income vs Expense).
 
-### UI Components
-#### [NEW] [budget-list.tsx](file:///Users/son.dc/Desktop/Projects/personal/src/components/budget/budget-list.tsx)
-- List current budgets.
-- Edit budget amount inline or via dialog.
+### 3. Family & Sharing Mechanics
+- **Database**: `Family` model, `FamilyMember` linking Users. `Transaction` has optional `familyId`.
+- **Logic**:
+    - [x] **Invite System**: Generate invite codes/links.
+    - [x] **Shared View**: Toggle between "Personal" and "Family" scopes on Dashboard/History.
+    - [x] **Permissions**: Members can view/edit family transactions based on roles (Admin/Member).
 
-#### [NEW] [budget-progress.tsx](file:///Users/son.dc/Desktop/Projects/personal/src/components/budget/budget-progress.tsx)
-- Visual progress bar (Shadcn `Progress`).
-- Color coding: Green (<80%), Yellow (80-100%), Red (>100% - Over budget).
+### 4. Budgeting & Planning
+**Ref**: [Conversation: Debugging Budget Save Error]
+- **Database**: `Budget` model linked to `Category` and `User` (or `Family`).
+- **Features**:
+    - [x] **Budget Setting**: UI to set monthly limits per category.
+    - [x] **Progress Tracking**: Visual progress bars showing spend vs limit.
+    - **[FIX] Budget Save Authorization**:
+        - Resolved `Unauthorized` errors in `src/actions/budget.ts`.
+        - Fixed session validation logic in `src/lib/auth-helpers.ts` to ensure reliable user identification during server actions.
 
-#### [MODIFY] [dashboard/page.tsx](file:///Users/son.dc/Desktop/Projects/personal/src/app/dashboard/page.tsx)
-- Add "Budgets" section/card.
-- Display top over-budget categories.
+### 5. Reports & Analytics
+**Ref**: [Conversation: Improving Reports Chart UI]
+- **Library**: `recharts` for visualization.
+- **Features**:
+    - [x] **Reports Page**: Dedicated `/reports` route.
+    - [x] **Monthly Comparison**: Line/Area chart comparing income/expense over time.
+    - [x] **Category Breakdown**: Pie/Donut chart of spending distribution.
+    - **[ENHANCEMENT] Chart UI Polish**:
+        - Upgraded Line Chart to **Area Chart** with gradient fills (`defs` in Recharts).
+        - Improved Tooltip styling (glassmorphism effect).
+        - Enhanced Axis styling (custom tick formatters, simplified grids).
 
-### Analytics (Recharts)
-#### [NEW] [charts/monthly-chart.tsx](file:///Users/son.dc/Desktop/Projects/personal/src/components/charts/monthly-chart.tsx)
-- Bar chart: Income vs Expense per day/week.
-
-#### [NEW] [charts/category-pie.tsx](file:///Users/son.dc/Desktop/Projects/personal/src/components/charts/category-pie.tsx)
-- Pie chart: Expense distribution by category.
+### 6. UI Structure & Polish
+- **Navigation**:
+    - [x] Bottom Nav (Mobile) / Sidebar or Header (Desktop).
+    - [x] Quick Actions (Floating Action Button).
+- **Pages Reorganization**:
+    - [x] `/dashboard`: Main summary.
+    - [x] `/reports`: Detailed analytics.
+    - [x] `/settings`: Budget & Profile management.
+- **Theming**:
+    - [x] Dark/Light mode support.
+    - [x] Consistent color palette (Slate/Blue/Red/Green) for financial data.
 
 ## Verification Plan
-1.  **Budget Setting**: Set budget for "Food".
-2.  **Tracking**: Add "Food" expense. Check if budget progress bar updates.
-3.  **Visualization**: Check Dashboard charts accurately reflect transactions.
+
+### Automated Tests
+- Run `npm run lint` and `npm run build` to ensure type safety.
+
+### Manual Verification Checklist
+1.  **Authentication**:
+    - [ ] Sign up new user -> Login -> Logout.
+2.  **Budget Flow (Critical)**:
+    - [ ] Go to Settings -> Budget.
+    - [ ] Add a new budget for a category.
+    - [ ] **Verify**: Save successful (No "Unauthorized" error).
+3.  **Reports Visualization**:
+    - [ ] Go to Reports page.
+    - [ ] Check Monthly Trend chart.
+    - [ ] **Verify**: Chart uses Gradient Area style, tooltip appears on hover.
+4.  **Family Sharing**:
+    - [ ] Switch context to Family.
+    - [ ] Verify transactions filter by family correctly.

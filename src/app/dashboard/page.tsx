@@ -1,10 +1,10 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getCategories, getTransactions, getMonthlyStats, TransactionWithCategory } from "@/actions/transaction";
-import { DashboardClient } from "@/components/dashboard/dashboard-client";
-
+import { getBudgetProgress } from "@/actions/budget";
 import { getFamilyMembers } from "@/actions/family";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
 
 export default async function DashboardPage({
   searchParams,
@@ -25,11 +25,12 @@ export default async function DashboardPage({
   const startDate = resolvedSearchParams.from ? new Date(resolvedSearchParams.from as string) : undefined;
   const endDate = resolvedSearchParams.to ? new Date(resolvedSearchParams.to as string) : undefined;
 
-  const [categories, transactions, stats, familyMembers] = await Promise.all([
+  const [categories, transactions, stats, familyMembers, budgetProgress] = await Promise.all([
     getCategories(),
     getTransactions(50, 0, { scope, categoryId, memberId, startDate, endDate }) as Promise<TransactionWithCategory[]>,
-    getMonthlyStats(), // Note: stats might need filters too later
-    getFamilyMembers() as Promise<any>
+    getMonthlyStats(),
+    getFamilyMembers() as Promise<any>,
+    getBudgetProgress(),
   ]);
 
   return (
@@ -39,6 +40,7 @@ export default async function DashboardPage({
       transactions={transactions}
       stats={stats}
       familyMembers={familyMembers}
+      budgetProgress={budgetProgress}
     />
   );
 }

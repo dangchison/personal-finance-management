@@ -1,11 +1,9 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getTransactions, getCategories } from "@/actions/transaction";
 import { TransactionsClient } from "@/components/transaction/transactions-client";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { getFamilyMembers } from "@/actions/family";
 
 export default async function TransactionsPage({
@@ -44,17 +42,10 @@ export default async function TransactionsPage({
 
   return (
     <div className="p-4 space-y-6 max-w-5xl mx-auto min-h-screen">
-      <div className="flex items-center gap-4 border-b pb-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Lịch sử giao dịch</h1>
-          <p className="text-muted-foreground text-sm">Xem lại toàn bộ chi tiêu của bạn</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Lịch sử giao dịch"
+        description="Xem lại toàn bộ chi tiêu của bạn"
+      />
 
       <TransactionsClient
         initialTransactions={transactions}

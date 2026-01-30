@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useCallback } from "react";
 import { TransactionList } from "./transaction-list";
 import { Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, FilterX } from "lucide-react";
+import { ChevronLeft, ChevronRight, FilterX, Filter } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AddTransaction } from "./add-transaction";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -130,12 +130,24 @@ export function TransactionsClient({
       {/* Scope Tabs & Filters */}
       <div className="space-y-4">
         {familyMembers.length > 0 && (
-          <Tabs value={scope} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
-              <TabsTrigger value="personal">Giao dịch cá nhân</TabsTrigger>
-              <TabsTrigger value="family">Giao dịch gia đình</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <Tabs value={scope} onValueChange={handleTabChange} className="w-full sm:w-auto">
+              <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
+                <TabsTrigger value="personal">Giao dịch cá nhân</TabsTrigger>
+                <TabsTrigger value="family">Giao dịch gia đình</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full sm:w-auto h-9"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
+            </Button>
+          </div>
         )}
 
         <TransactionFilters
@@ -146,6 +158,7 @@ export function TransactionsClient({
           familyMembers={familyMembers}
           scope={scope as "personal" | "family"}
           showFilters={showFilters}
+          hideTrigger={familyMembers.length > 0}
           onCategoryChange={(v) => updateFilters({ categoryId: v })}
           onMemberChange={(v) => updateFilters({ memberId: v })}
           onDateRangeChange={setDate as any}

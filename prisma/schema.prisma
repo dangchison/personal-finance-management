@@ -60,17 +60,23 @@ model Category {
   family      Family?  @relation(fields: [familyId], references: [id])
   familyId    String?
   transactions Transaction[]
+  budgets     Budget[]
 }
 
 model Budget {
-  id        String   @id @default(uuid())
-  amount    Decimal
-  month     Int
-  year      Int
-  user      User?    @relation(fields: [userId], references: [id]) // Optional: user-specific budget
-  userId    String?
-  family    Family?  @relation(fields: [familyId], references: [id]) // Optional: family-wide budget
-  familyId  String?
+  id          String   @id @default(uuid())
+  amount      Decimal
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  familyId    String? 
+  family      Family?  @relation(fields: [familyId], references: [id])
+  period      String   @default("monthly") // "monthly"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([categoryId, userId, familyId])
 }
 
 enum Role {

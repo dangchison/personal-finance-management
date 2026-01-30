@@ -23,6 +23,7 @@ interface TransactionFiltersProps {
 
   // Visibility
   showFilters: boolean;
+  hideTrigger?: boolean;
 
   // Callbacks
   onCategoryChange: (value: string) => void;
@@ -39,6 +40,7 @@ export function TransactionFilters({
   familyMembers = [],
   scope = "personal",
   showFilters,
+  hideTrigger = false,
   onCategoryChange,
   onMemberChange,
   onDateRangeChange,
@@ -46,17 +48,19 @@ export function TransactionFilters({
 }: TransactionFiltersProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onToggleFilters}
-          className="w-full sm:w-auto h-9"
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
-        </Button>
-      </div>
+      {!hideTrigger && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleFilters}
+            className="w-full sm:w-auto h-9"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
+          </Button>
+        </div>
+      )}
 
       {/* Collapsible Filters Bar */}
       {showFilters && (

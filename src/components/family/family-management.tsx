@@ -140,11 +140,10 @@ export function FamilyManagement({ initialFamily }: FamilyManagementProps) {
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">Mã mời thành viên</p>
-                <code className="text-lg font-bold tracking-wider">{family.inviteCode}</code>
+                <code className="text-lg font-bold tracking-wider break-all">{family.inviteCode}</code>
               </div>
-              <Button variant="ghost" size="sm" onClick={copyInviteCode}>
-                <Copy className="h-4 w-4 mr-2" />
-                Sao chép
+              <Button variant="ghost" size="icon" onClick={copyInviteCode}>
+                <Copy className="h-4 w-4" />
               </Button>
             </div>
 

@@ -4,7 +4,7 @@ import { useState, useCallback, useTransition, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { List, BarChart3, Users } from "lucide-react";
+import { List, BarChart3, Users, Filter } from "lucide-react";
 import { UserNav } from "@/components/auth/user-nav";
 import { AddTransaction } from "@/components/transaction/add-transaction";
 import { TransactionList } from "@/components/transaction/transaction-list";
@@ -30,9 +30,10 @@ interface DashboardClientProps {
     expense: number;
   };
   familyMembers?: { id: string; name: string | null; image: string | null }[];
+  budgetProgress?: any[]; // Using any to avoid type complexity for now
 }
 
-export function DashboardClient({ user, categories, transactions, stats, familyMembers = [] }: DashboardClientProps) {
+export function DashboardClient({ user, categories, transactions, stats, familyMembers = [], budgetProgress = [] }: DashboardClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null);
@@ -125,8 +126,25 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
             <CardTitle className="text-sm font-medium">Ngân sách còn lại</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">Chưa thiết lập</div>
-            <p className="text-xs text-muted-foreground mt-1">Hạn mức: -- ₫</p>
+            {budgetProgress && budgetProgress.length > 0 ? (
+              <>
+                <div className="text-3xl font-bold">
+                  {new Intl.NumberFormat("vi-VN").format(
+                    budgetProgress.reduce((acc, b) => acc + (b.amount - b.spent), 0)
+                  )} ₫
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tổng hạn mức: {new Intl.NumberFormat("vi-VN").format(budgetProgress.reduce((acc, b) => acc + b.amount, 0))} ₫
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-sm text-muted-foreground mb-2">Chưa thiết lập ngân sách</div>
+                <Button variant="outline" size="sm" asChild className="w-full h-8">
+                  <Link href="/settings?tab=budget">Thiết lập ngay</Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -140,9 +158,11 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
             <span>Lịch sử</span>
           </Link>
         </Button>
-        <Button variant="secondary" className="h-20 flex-col gap-2 opacity-50 cursor-not-allowed" disabled>
-          <BarChart3 className="w-6 h-6" />
-          <span>Báo cáo</span>
+        <Button variant="secondary" className="h-20 flex-col gap-2" asChild>
+          <Link href="/reports">
+            <BarChart3 className="w-6 h-6" />
+            <span>Báo cáo</span>
+          </Link>
         </Button>
         <Button variant="secondary" className="h-20 flex-col gap-2" asChild>
           <Link href="/family">
@@ -151,6 +171,8 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
           </Link>
         </Button>
       </div>
+
+
 
       {/* Main Content Area with Tabs & Filters */}
       {/* Main Content Area with Tabs & Filters */}
@@ -162,6 +184,16 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
                 <TabsTrigger value="personal">Cá nhân</TabsTrigger>
                 <TabsTrigger value="family">Gia đình</TabsTrigger>
               </TabsList>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="w-full sm:w-auto h-9"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
+              </Button>
             </div>
 
             <TransactionFilters
@@ -172,6 +204,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
               familyMembers={familyMembers}
               scope={scope as "personal" | "family"}
               showFilters={showFilters}
+              hideTrigger={true}
               onCategoryChange={(val) => updateFilters({ categoryId: val })}
               onMemberChange={(val) => updateFilters({ memberId: val })}
               onDateRangeChange={handleDateSelect}

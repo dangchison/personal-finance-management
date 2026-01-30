@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+
 
 /**
  * Get the authenticated user from the current session
@@ -10,12 +11,14 @@ export async function getAuthenticatedUser() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
+    console.error("getAuthenticatedUser: No session found");
     throw new Error("Unauthorized");
   }
 
   const userId = (session.user as any).id;
 
   if (!userId) {
+    console.error("getAuthenticatedUser: Session found but no user ID", session.user);
     throw new Error("User ID not found");
   }
 

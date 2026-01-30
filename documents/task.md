@@ -10,7 +10,7 @@
     - [x] Set up NextAuth.js <!-- id: 3 -->
     - [x] Create Login/Register UI <!-- id: 15 -->
     - [x] Implement Protect Route Middleware <!-- id: 16 -->
-- [ ] **Authentication & User Management**
+- [x] **Authentication & User Management**
     - [x] Update Schema (Add username) <!-- id: 31 -->
     - [x] Seed Admin User <!-- id: 32 -->
     - [x] Allow Login with Username/Email <!-- id: 33 -->
@@ -23,7 +23,7 @@
     - [x] Display Current Month Total <!-- id: 10 -->
 
 ## Sprint 2: Family & Sharing
-- [ ] **Family Management**
+- [x] **Family Management**
     - [x] Create Family/Group Schema <!-- id: 5 -->
     - [x] Implement "Create Family" & "Invite Member" logic <!-- id: 6 -->
     - [x] Implement "Leave Family" logic <!-- id: 37 -->
@@ -46,13 +46,17 @@
     - [x] Configure Environment Variables on Vercel <!-- id: 22 -->
 
 ## Sprint 3: Analysis & Budgets
-- [ ] **Budgeting**
-    - [ ] Create Budget Schema <!-- id: 9 -->
-    - [ ] Implement Budget Setting UI <!-- id: 23 -->
-    - [ ] Implement Over-budget Alert Logic <!-- id: 13 -->
-- [ ] **Reports & Analytics**
-    - [ ] Integrate Recharts <!-- id: 24 -->
-    - [ ] Create Monthly Comparison Chart <!-- id: 12 -->
-    - [ ] Create Category Pie Chart <!-- id: 25 -->
-- [ ] **Polish**
-    - [ ] Final UI/UX Polish (Dark mode, Animations) <!-- id: 26 -->
+- [x] **Budgeting**
+    - [x] Create Budget Schema <!-- id: 9 -->
+    - [x] Implement Budget Setting UI <!-- id: 23 -->
+    - [x] Implement Over-budget Alert Logic <!-- id: 13 -->
+- [x] **Reports & Analytics**
+    - [x] Integrate Recharts <!-- id: 24 -->
+    - [x] Create Monthly Comparison Chart <!-- id: 12 -->
+    - [x] Create Category Pie Chart <!-- id: 25 -->
+- [x] **UI Restructuring**
+    - [x] Create Reports Page (Move charts) <!-- id: 47 -->
+    - [x] Create Settings Page (Move Budget) <!-- id: 48 -->
+    - [x] Update Dashboard & Navigation <!-- id: 49 -->
+- [x] **Polish**
+    - [x] Final UI/UX Polish (Dark mode, Animations) <!-- id: 26 -->

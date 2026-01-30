@@ -9,10 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "next-auth/react";
-import { User, Settings, LogOut, Users } from "lucide-react";
+import { User, LogOut, Users, Settings } from "lucide-react";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -58,17 +59,23 @@ export function UserNav() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem className="cursor-pointer">
-              <User className="mr-2 h-4 w-4" />
-              <span>Hồ sơ</span>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/settings?tab=general">
+                <User className="mr-2 h-4 w-4" />
+                <span>Hồ sơ</span>
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              <Users className="mr-2 h-4 w-4" />
-              <span>Gia đình</span>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/family">
+                <Users className="mr-2 h-4 w-4" />
+                <span>Gia đình</span>
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Cài đặt</span>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Cài đặt</span>
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
