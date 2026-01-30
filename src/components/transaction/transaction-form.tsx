@@ -59,7 +59,13 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialData ? {
+      amount: Number(initialData.amount),
+      description: initialData.description,
+      type: initialData.type as "INCOME" | "EXPENSE",
+      categoryId: initialData.categoryId,
+      date: new Date(initialData.date),
+    } : {
       amount: 0,
       description: "",
       type: "EXPENSE",
@@ -134,6 +140,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
                     type="number"
                     min="0"
                     className="pl-8 text-lg font-bold"
+                    disabled={loading}
                   />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₫</span>
                 </div>
@@ -149,7 +156,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
           render={({ field }) => (
             <FormItem>
               <FormLabel>Danh mục</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled={loading}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn danh mục" />
@@ -175,7 +182,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
             <FormItem>
               <FormLabel>Ghi chú</FormLabel>
               <FormControl>
-                <Input placeholder="Ví dụ: Ăn trưa, Tiền xăng..." {...field} />
+                <Input placeholder="Ví dụ: Ăn trưa, Tiền xăng..." {...field} disabled={loading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -211,6 +218,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
                           "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
+                        disabled={loading}
                       >
                         {field.value ? (
                           format(field.value, "PPP", { locale: vi })

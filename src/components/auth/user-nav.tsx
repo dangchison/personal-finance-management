@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "next-auth/react";
 import { User, LogOut, Users, Settings } from "lucide-react";
 import { useState } from "react";
+import { GoodbyeScreen } from "@/components/auth/goodbye-screen";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +30,16 @@ import {
 export function UserNav() {
   const { data: session } = useSession();
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+  const [showGoodbye, setShowGoodbye] = useState(false);
+
+  const handleLogout = () => {
+    setShowLogoutAlert(false);
+    setShowGoodbye(true);
+  };
+
+  const completeLogout = () => {
+    signOut({ callbackUrl: "/login" });
+  };
 
   const user = session?.user;
   const initials = user?.name
@@ -101,13 +112,20 @@ export function UserNav() {
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={handleLogout}
             >
               Đăng xuất
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showGoodbye && (
+        <GoodbyeScreen
+          userName={user?.name}
+          onComplete={completeLogout}
+        />
+      )}
     </>
   );
 }
