@@ -124,7 +124,7 @@ function LoginForm() {
 
             {/* Submit Button */}
             <Button
-              className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 border-0"
+              className="w-full h-12 bg-white text-cyan-600 hover:bg-white/90 font-semibold rounded-xl shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 border-0"
               type="submit"
               disabled={loading}
             >
