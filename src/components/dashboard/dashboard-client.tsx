@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import { CountUpAnimation } from "@/components/ui/count-up-animation";
 import { TransactionDetailsModal } from "@/components/transaction/transaction-details-modal";
 import { QuickActionButton } from "./quick-action-button";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
+import { StatsCard } from "./stats-card";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionFilters } from "@/components/transaction/transaction-filters";
@@ -46,16 +47,16 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [navLoading, setNavLoading] = useState<string | null>(null);
-  const [showWelcome, setShowWelcome] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
-      if (!hasSeenWelcome) {
-        sessionStorage.setItem('hasSeenWelcome', 'true');
-        return true;
-      }
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Check sessionStorage only on client-side to avoid hydration errors
+  useEffect(() => {
+    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome) {
+      sessionStorage.setItem('hasSeenWelcome', 'true');
+      setShowWelcome(true);
     }
-    return false;
-  });
+  }, []);
 
   // Use URL filters hook
   const { updateFilters, updateDateRange, dateRange, isPending, searchParams } = useUrlFilters("/dashboard");
@@ -120,46 +121,51 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Chi tiêu Card - White bg with Indigo shadow */}
-          <Card className="relative overflow-hidden bg-card shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/35 transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Chi tiêu tháng này</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-500">
-                <CountUpAnimation end={stats.expense} /> ₫
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">So với tháng trước: --%</p>
-            </CardContent>
-          </Card>
+          {/* Chi tiêu Card */}
+          <StatsCard
+            title="Chi tiêu tháng này"
+            shadowColor="shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/35"
+          >
+            <div className="text-3xl font-bold text-blue-500">
+              <CountUpAnimation end={stats.expense} /> ₫
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">So với tháng trước: --%</p>
+          </StatsCard>
 
-          {/* Ngân sách Card - White bg with Blue shadow */}
-          <Card className="relative overflow-hidden bg-card shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 transition-all duration-300">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Ngân sách còn lại</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {budgetProgress && budgetProgress.length > 0 ? (
-                <>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                    <CountUpAnimation
-                      end={budgetProgress.reduce((acc, b) => acc + (b.amount - b.spent), 0)}
-                    /> ₫
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Tổng hạn mức: <CountUpAnimation end={budgetProgress.reduce((acc, b) => acc + b.amount, 0)} /> ₫
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="text-sm text-muted-foreground mb-2">Chưa thiết lập ngân sách</div>
-                  <Button variant="outline" size="sm" asChild className="w-full h-8 border-blue-300 text-blue-600 hover:bg-blue-50">
-                    <Link href="/settings?tab=budget">Thiết lập ngay</Link>
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
+          {/* Ngân sách Card */}
+          <StatsCard
+            title="Ngân sách còn lại"
+            shadowColor="shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35"
+            headerAction={
+              (!budgetProgress || budgetProgress.length === 0) ? (
+                <Link
+                  href="/settings?tab=budget"
+                  className="text-muted-foreground hover:text-blue-600 transition-colors"
+                  title="Thiết lập ngân sách"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </Link>
+              ) : undefined
+            }
+          >
+            {budgetProgress && budgetProgress.length > 0 ? (
+              <>
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  <CountUpAnimation
+                    end={budgetProgress.reduce((acc, b) => acc + (b.amount - b.spent), 0)}
+                  /> ₫
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tổng hạn mức: <CountUpAnimation end={budgetProgress.reduce((acc, b) => acc + b.amount, 0)} /> ₫
+                </p>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">Chưa thiết lập ngân sách</div>
+            )}
+          </StatsCard>
         </div>
 
         {/* Quick Actions Types */}
