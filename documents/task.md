@@ -68,13 +68,16 @@
     - [x] Remove duplicate/redundant code <!-- id: 52 -->
 - [x] **Refactoring**
     - [x] Refactor complex functions (Extracted TransactionForm) <!-- id: 53 -->
+- [x] **Enhancements**
+    - [x] Simplify Dashboard Filters (Current Month Only) <!-- id: 60 -->
+
 
 ## Release 1.1: Admin Features (Current)
 - [ ] **Architecture**
-    - [ ] Update NextAuth to include Role in Session <!-- id: 54 -->
-    - [ ] Create Admin Layout & Route Protection (`/admin`) <!-- id: 55 -->
+    - [x] Update NextAuth to include Role in Session <!-- id: 54 -->
+    - [x] Create Admin Layout & Route Protection (`/admin`) <!-- id: 55 -->
 - [ ] **Admin: Category Management**
-    - [ ] Server Action: `getSystemCategories`, `create`, `update`, `delete` <!-- id: 56 -->
-    - [ ] UI: Category List Table <!-- id: 57 -->
-    - [ ] UI: Create/Edit Category Dialog <!-- id: 58 -->
-    - [ ] Verify Admin Permissions & Security <!-- id: 59 -->
+    - [x] Server Action: `getSystemCategories`, `create`, `update`, `delete` <!-- id: 56 -->
+    - [x] Integrate System Categories Tab in Settings Page <!-- id: 61 -->
+    - [x] UI: Category List Table & Dialog <!-- id: 57 -->
+    - [x] Verify Admin Permissions & Security <!-- id: 59 -->

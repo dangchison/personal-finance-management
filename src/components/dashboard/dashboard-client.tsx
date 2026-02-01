@@ -242,6 +242,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
                 scope={scope as "personal" | "family"}
                 showFilters={showFilters}
                 hideTrigger={true}
+                hideDateFilter={true}
                 onCategoryChange={(val) => updateFilters({ categoryId: val })}
                 onMemberChange={(val) => updateFilters({ memberId: val })}
                 onDateRangeChange={handleDateSelect}
@@ -294,6 +295,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
                 categories={categories}
                 scope="personal"
                 showFilters={showFilters}
+                hideDateFilter={true}
                 onCategoryChange={(val) => updateFilters({ categoryId: val })}
                 onDateRangeChange={handleDateSelect}
                 onToggleFilters={() => setShowFilters(!showFilters)}

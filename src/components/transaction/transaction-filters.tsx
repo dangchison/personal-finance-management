@@ -24,6 +24,7 @@ interface TransactionFiltersProps {
   // Visibility
   showFilters: boolean;
   hideTrigger?: boolean;
+  hideDateFilter?: boolean;
 
   // Callbacks
   onCategoryChange: (value: string) => void;
@@ -51,6 +52,7 @@ export function TransactionFilters({
   scope = "personal",
   showFilters,
   hideTrigger = false,
+  hideDateFilter = false,
   onCategoryChange,
   onMemberChange,
   onDateRangeChange,
@@ -152,73 +154,75 @@ export function TransactionFilters({
           )}
 
           {/* Month Picker */}
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                id="month"
-                variant={"outline"}
-                className={cn(
-                  "w-full sm:w-[180px] justify-start text-left font-normal h-9"
-                )}
-                suppressHydrationWarning
-              >
-                <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                <span className="truncate">
-                  {MONTHS_FULL[selectedMonth]} {selectedYear}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-4" align="end">
-              {/* Year Navigation */}
-              <div className="flex items-center justify-between mb-4">
+          {!hideDateFilter && (
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleYearChange('prev')}
+                  id="month"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full sm:w-[180px] justify-start text-left font-normal h-9"
+                  )}
+                  suppressHydrationWarning
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    {MONTHS_FULL[selectedMonth]} {selectedYear}
+                  </span>
                 </Button>
-                <div className="font-semibold text-sm">{selectedYear}</div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleYearChange('next')}
-                  disabled={selectedYear >= currentYear}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-[280px] p-4" align="end">
+                {/* Year Navigation */}
+                <div className="flex items-center justify-between mb-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleYearChange('prev')}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="font-semibold text-sm">{selectedYear}</div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleYearChange('next')}
+                    disabled={selectedYear >= currentYear}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
 
-              {/* Month Grid */}
-              <div className="grid grid-cols-4 gap-2">
-                {MONTHS_SHORT.map((month, index) => {
-                  const isFuture = selectedYear === currentYear && index > currentMonth;
-                  const isSelected = selectedMonth === index && selectedYear === currentDate.getFullYear();
+                {/* Month Grid */}
+                <div className="grid grid-cols-4 gap-2">
+                  {MONTHS_SHORT.map((month, index) => {
+                    const isFuture = selectedYear === currentYear && index > currentMonth;
+                    const isSelected = selectedMonth === index && selectedYear === currentDate.getFullYear();
 
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleMonthClick(index)}
-                      disabled={isFuture}
-                      className={cn(
-                        "h-10 rounded-md text-sm font-medium transition-colors",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                        "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background",
-                        isSelected
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-background"
-                      )}
-                    >
-                      {month}
-                    </button>
-                  );
-                })}
-              </div>
-            </PopoverContent>
-          </Popover>
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => handleMonthClick(index)}
+                        disabled={isFuture}
+                        className={cn(
+                          "h-10 rounded-md text-sm font-medium transition-colors",
+                          "hover:bg-accent hover:text-accent-foreground",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background"
+                        )}
+                      >
+                        {month}
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       )}
     </div>

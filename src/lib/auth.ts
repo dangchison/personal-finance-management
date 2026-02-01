@@ -47,6 +47,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           username: user.username,
+          role: user.role,
           rememberMe: credentials.rememberMe === "true",
         };
       },
@@ -64,6 +65,8 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;
+        token.role = user.role;
+        token.username = user.username;
         // Handle remember me
         const rememberMe = (user as any).rememberMe;
         const now = Math.floor(Date.now() / 1000);
@@ -78,7 +81,9 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
-        (session.user as any).id = token.sub;
+        session.user.id = token.sub;
+        session.user.role = token.role;
+        session.user.username = token.username;
       }
       return session;
     },

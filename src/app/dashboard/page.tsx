@@ -22,8 +22,11 @@ export default async function DashboardPage({
   const scope = (resolvedSearchParams.scope as "personal" | "family") || "personal";
   const categoryId = resolvedSearchParams.categoryId as string;
   const memberId = resolvedSearchParams.memberId as string;
-  const startDate = resolvedSearchParams.from ? new Date(resolvedSearchParams.from as string) : undefined;
-  const endDate = resolvedSearchParams.to ? new Date(resolvedSearchParams.to as string) : undefined;
+  // Dashboard only shows current month data
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+  // Ignore searchParams.from/to for dashboard to enforce current month view
 
   const [categories, transactions, stats, familyMembers, budgetProgress] = await Promise.all([
     getCategories(),

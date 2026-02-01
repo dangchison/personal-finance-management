@@ -3,11 +3,13 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getCategories } from "@/actions/transaction";
 import { getBudgetProgress } from "@/actions/budget";
+import { getSystemCategories } from "@/actions/admin";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BudgetList } from "@/components/budget/budget-list";
 import { UserNav } from "@/components/auth/user-nav";
+import { CategoryClient } from "@/components/admin/category-client";
 
 export default async function SettingsPage({
   searchParams,
@@ -20,9 +22,12 @@ export default async function SettingsPage({
     redirect("/login");
   }
 
-  const [categories, budgetProgress] = await Promise.all([
+  const isAdmin = session.user.role === "ADMIN";
+
+  const [categories, budgetProgress, systemCategories] = await Promise.all([
     getCategories(),
     getBudgetProgress(),
+    isAdmin ? getSystemCategories() : Promise.resolve([]),
   ]);
 
   const resolvedSearchParams = await searchParams;
@@ -41,7 +46,7 @@ export default async function SettingsPage({
         <TabsList>
           <TabsTrigger value="general">Thông tin chung</TabsTrigger>
           <TabsTrigger value="budget">Ngân sách</TabsTrigger>
-          <TabsTrigger value="preferences" disabled>Tùy chọn khác</TabsTrigger>
+          {isAdmin && <TabsTrigger value="categories">Danh mục hệ thống (Admin)</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="general">
@@ -62,6 +67,10 @@ export default async function SettingsPage({
                   <label className="text-sm font-medium">Email</label>
                   <div className="p-2 border rounded-md bg-muted/50">{session.user?.email}</div>
                 </div>
+                <div>
+                  <label className="text-sm font-medium">Vai trò</label>
+                  <div className="p-2 border rounded-md bg-muted/50 font-mono text-xs">{session.user?.role}</div>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground mt-4">
                 Hiện tại bạn chưa thể thay đổi thông tin này trực tiếp.
@@ -73,6 +82,22 @@ export default async function SettingsPage({
         <TabsContent value="budget">
           <BudgetList initialBudgets={budgetProgress} categories={categories} />
         </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="categories">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quản lý danh mục hệ thống</CardTitle>
+                <CardDescription>
+                  Thêm, sửa, xóa các danh mục mặc định của hệ thống.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CategoryClient categories={systemCategories} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
