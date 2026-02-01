@@ -34,6 +34,8 @@ interface DashboardClientProps {
   stats: {
     income: number;
     expense: number;
+    previousIncome?: number;
+    previousExpense?: number;
   };
   familyMembers?: { id: string; name: string | null; image: string | null }[];
   budgetProgress?: any[]; // Using any to avoid type complexity for now
@@ -102,6 +104,18 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   };
 
 
+  // Calculate percentage change for expense
+  const prevExpense = stats.previousExpense || 0;
+  const expenseDiff = stats.expense - prevExpense;
+  // If previous is 0, and current is > 0, it's 100% increase (technically infinite, but 100% fits UI). 
+  // If both 0, it's 0%.
+  const expensePercent = prevExpense === 0
+    ? (stats.expense > 0 ? 100 : 0)
+    : Math.round(((stats.expense - prevExpense) / prevExpense) * 100);
+
+  const isIncrease = expensePercent > 0;
+  const isDecrease = expensePercent < 0;
+
   return (
     <>
       {showWelcome && (
@@ -129,7 +143,13 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
             <div className="text-3xl font-bold text-blue-500">
               <CountUpAnimation end={stats.expense} /> ₫
             </div>
-            <p className="text-xs text-muted-foreground mt-1">So với tháng trước: --%</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-muted-foreground">So với tháng trước:</p>
+              <span className={`text-xs font-medium ${isIncrease ? "text-rose-500" : isDecrease ? "text-emerald-500" : "text-muted-foreground"
+                }`}>
+                {expensePercent > 0 ? "+" : ""}{expensePercent}%
+              </span>
+            </div>
           </StatsCard>
 
           {/* Ngân sách Card */}

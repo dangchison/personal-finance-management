@@ -22,10 +22,22 @@ export default async function DashboardPage({
   const scope = (resolvedSearchParams.scope as "personal" | "family") || "personal";
   const categoryId = resolvedSearchParams.categoryId as string;
   const memberId = resolvedSearchParams.memberId as string;
-  // Dashboard only shows current month data
+
+  // Dashboard only shows current month data (Aligned with Vietnam Time UTC+7)
+  const TIMEZONE_OFFSET_HOURS = 7;
+  const offsetMs = TIMEZONE_OFFSET_HOURS * 60 * 60 * 1000;
+
   const now = new Date();
-  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+  const nowVn = new Date(now.getTime() + offsetMs);
+  const vnYear = nowVn.getUTCFullYear();
+  const vnMonth = nowVn.getUTCMonth();
+
+  // Start Of Month (VN): Year-Month-01 00:00:00 VN -> UTC
+  const startDate = new Date(Date.UTC(vnYear, vnMonth, 1) - offsetMs);
+
+  // End Of Month (VN): Year-Month-Last 23:59:59.999 VN -> UTC
+  const endDate = new Date(Date.UTC(vnYear, vnMonth + 1, 0, 23, 59, 59, 999) - offsetMs);
+
   // Ignore searchParams.from/to for dashboard to enforce current month view
 
   const [categories, transactions, stats, familyMembers, budgetProgress] = await Promise.all([

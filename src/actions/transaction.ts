@@ -182,8 +182,24 @@ export async function getMonthlyStats() {
     const user = await getAuthenticatedUser();
 
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    // Adjust for UTC+7 (Vietnam Time) to capture transactions made in local time
+    const TIMEZONE_OFFSET_HOURS = 7;
+    const offsetMs = TIMEZONE_OFFSET_HOURS * 60 * 60 * 1000;
+
+    // Calculate "Vietnam Now" first to identify correct Month/Year
+    const nowVn = new Date(now.getTime() + offsetMs);
+    const vnYear = nowVn.getUTCFullYear();
+    const vnMonth = nowVn.getUTCMonth();
+
+    // Current Month (VN -> UTC)
+    // Feb 1 00:00 VN corresponds to Date.UTC(2026, 1, 1) - 7h
+    const start = new Date(Date.UTC(vnYear, vnMonth, 1) - offsetMs);
+    const end = new Date(Date.UTC(vnYear, vnMonth + 1, 0, 23, 59, 59, 999) - offsetMs);
+
+    // Previous Month (VN -> UTC)
+    const startPrev = new Date(Date.UTC(vnYear, vnMonth - 1, 1) - offsetMs);
+    const endPrev = new Date(Date.UTC(vnYear, vnMonth, 0, 23, 59, 59, 999) - offsetMs);
 
     const aggregates = await prisma.transaction.groupBy({
       by: ['type'],
@@ -191,8 +207,8 @@ export async function getMonthlyStats() {
         userId: user.id,
         deletedAt: null,
         date: {
-          gte: start,
-          lte: end,
+          gte: startPrev, // Fetch from start of previous month
+          lte: end,       // To end of current month
         },
       },
       _sum: {
@@ -200,13 +216,47 @@ export async function getMonthlyStats() {
       },
     });
 
-    const income = aggregates.find(a => a.type === 'INCOME')?._sum.amount?.toNumber() || 0;
-    const expense = aggregates.find(a => a.type === 'EXPENSE')?._sum.amount?.toNumber() || 0;
+    // We need to group by month to separate them, OR we can run two queries.
+    // groupBy doesn't support grouping by date trunc easily in Prisma without raw query.
+    // Two queries is cleaner for maintainability and small scale.
 
-    return { income, expense };
+    // Query 1: Current Month
+    const currentStats = await prisma.transaction.groupBy({
+      by: ['type'],
+      where: {
+        userId: user.id,
+        deletedAt: null,
+        date: { gte: start, lte: end },
+      },
+      _sum: { amount: true },
+    });
+
+    // Query 2: Previous Month
+    const prevStats = await prisma.transaction.groupBy({
+      by: ['type'],
+      where: {
+        userId: user.id,
+        deletedAt: null,
+        date: { gte: startPrev, lte: endPrev },
+      },
+      _sum: { amount: true },
+    });
+
+    const income = currentStats.find(a => a.type === 'INCOME')?._sum.amount?.toNumber() || 0;
+    const expense = currentStats.find(a => a.type === 'EXPENSE')?._sum.amount?.toNumber() || 0;
+
+    const previousIncome = prevStats.find(a => a.type === 'INCOME')?._sum.amount?.toNumber() || 0;
+    const previousExpense = prevStats.find(a => a.type === 'EXPENSE')?._sum.amount?.toNumber() || 0;
+
+    return {
+      income,
+      expense,
+      previousIncome,
+      previousExpense
+    };
   } catch (error) {
     console.error("Failed to fetch monthly stats:", error);
-    return { income: 0, expense: 0 };
+    return { income: 0, expense: 0, previousIncome: 0, previousExpense: 0 };
   }
 }
 
