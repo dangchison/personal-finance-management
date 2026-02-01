@@ -217,3 +217,131 @@ export async function getYearlyComparison(
     return [];
   }
 }
+
+export async function getSixMonthTrend(
+  scope: "personal" | "family" = "personal"
+) {
+  try {
+    const user = await getAuthenticatedUser();
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { familyId: true }
+    });
+
+    const now = new Date();
+    // End date: Last moment of today/current month
+    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    // Start date: 1st day of month, 5 months ago
+    // e.g. If now is Feb 2026, we want: Sep, Oct, Nov, Dec, Jan, Feb
+    const startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    const where: any = {
+      type: "EXPENSE",
+      deletedAt: null,
+      date: {
+        gte: startDate,
+        lte: endDate
+      }
+    };
+
+    if (scope === "family" && dbUser?.familyId) {
+      const familyUsers = await prisma.user.findMany({
+        where: { familyId: dbUser.familyId },
+        select: { id: true }
+      });
+      where.userId = { in: familyUsers.map(u => u.id) };
+    } else {
+      where.userId = user.id;
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where,
+      select: {
+        date: true,
+        amount: true
+      }
+    });
+
+    // Generate buckets for last 6 months
+    const monthlyData: { month: string; fullDate: string; value: number }[] = [];
+
+    // Create skeletal structure
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+      monthlyData.push({
+        month: format(d, 'MM/yyyy'),
+        fullDate: format(d, 'yyyy-MM'),
+        value: 0
+      });
+    }
+
+    // Fill data
+    transactions.forEach(t => {
+      const key = format(t.date, 'MM/yyyy');
+      const bucket = monthlyData.find(m => m.month === key);
+      if (bucket) {
+        bucket.value += Number(t.amount);
+      }
+    });
+
+    return monthlyData;
+
+  } catch (error) {
+    console.error("Failed to fetch 6-month trend:", error);
+    return [];
+  }
+}
+
+export async function getMonthlySummary(
+  startDate?: Date,
+  endDate?: Date,
+  scope: "personal" | "family" = "personal"
+) {
+  try {
+    const user = await getAuthenticatedUser();
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { familyId: true }
+    });
+
+    const now = new Date();
+    const start = startDate || new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = endDate || now;
+
+    const where: any = {
+      date: {
+        gte: start,
+        lte: end
+      },
+      deletedAt: null
+    };
+
+    if (scope === "family" && dbUser?.familyId) {
+      const familyUsers = await prisma.user.findMany({
+        where: { familyId: dbUser.familyId },
+        select: { id: true }
+      });
+      where.userId = { in: familyUsers.map(u => u.id) };
+    } else {
+      where.userId = user.id;
+    }
+
+    const aggregated = await prisma.transaction.groupBy({
+      by: ['type'],
+      where,
+      _sum: {
+        amount: true
+      }
+    });
+
+    const income = aggregated.find(a => a.type === "INCOME")?._sum.amount?.toNumber() || 0;
+    const expense = aggregated.find(a => a.type === "EXPENSE")?._sum.amount?.toNumber() || 0;
+
+    return { income, expense };
+
+  } catch (error) {
+    console.error("Failed to fetch monthly summary:", error);
+    return { income: 0, expense: 0 };
+  }
+}

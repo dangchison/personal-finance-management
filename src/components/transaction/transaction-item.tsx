@@ -44,12 +44,12 @@ export function TransactionItem({ transaction, onView, readOnly = false }: Trans
                 <span className="truncate max-w-[80px] sm:max-w-none">{transaction.category.name}</span>
               </span>
               <span className="flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded-md">
-                {(transaction as any).paymentMethod === "TRANSFER" ? (
+                {transaction.paymentMethod === "TRANSFER" ? (
                   <CreditCard className="h-3 w-3" />
                 ) : (
                   <Wallet className="h-3 w-3" />
                 )}
-                <span>{(transaction as any).paymentMethod === "TRANSFER" ? "CK" : "TM"}</span>
+                <span>{transaction.paymentMethod === "TRANSFER" ? "CK" : "TM"}</span>
               </span>
             </div>
           </div>
@@ -73,6 +73,7 @@ export function TransactionItem({ transaction, onView, readOnly = false }: Trans
           {readOnly && transaction.user && (
             <div className="h-8 w-8 flex items-center justify-center shrink-0">
               {transaction.user.image ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={transaction.user.image}
                   alt={transaction.user.name || "User"}

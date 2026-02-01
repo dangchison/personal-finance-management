@@ -1,14 +1,12 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getDailyStats, getCategoryStats, getYearlyComparison } from "@/actions/analytics";
+import { getSixMonthTrend, getMonthlySummary, getCategoryStats } from "@/actions/analytics";
 import { getFamilyMembers } from "@/actions/family";
-import { MonthlyChart } from "@/components/charts/monthly-chart";
 import { PageHeader } from "@/components/ui/page-header";
-import { CategoryPieChart } from "@/components/charts/category-pie";
 import { ReportFilters } from "@/components/reports/report-filters";
-import { ReportSummary } from "@/components/reports/report-summary";
-import { YearlyComparison } from "@/components/charts/yearly-comparison";
+import { RecentTrendChart } from "@/components/charts/recent-trend";
+import { SpendingAnalysis } from "@/components/reports/spending-analysis";
 
 export default async function ReportsPage({
   searchParams,
@@ -24,24 +22,20 @@ export default async function ReportsPage({
   const resolvedSearchParams = await searchParams;
 
   const scope = (resolvedSearchParams.scope as "personal" | "family") || "personal";
-  // Allow date filters? For now simple default (last 30 days / current month).
-  // Future: Add filter controls to Reports page.
 
   const now = new Date();
   const startDate = resolvedSearchParams.from ? new Date(resolvedSearchParams.from as string) : new Date(now.getFullYear(), now.getMonth(), 1); // Current month start
   const endDate = resolvedSearchParams.to ? new Date(resolvedSearchParams.to as string) : new Date();
 
-  const [dailyStats, categoryStats, familyMembers, yearlyComparison] = await Promise.all([
-    getDailyStats(startDate, endDate, scope),
+  // Fetch all necessary data in parallel
+  const [monthlySummary, categoryStats, familyMembers, sixMonthTrend] = await Promise.all([
+    getMonthlySummary(startDate, endDate, scope),
     getCategoryStats(startDate, endDate, scope),
     getFamilyMembers(),
-    getYearlyComparison(scope),
+    getSixMonthTrend(scope),
   ]);
 
   const hasFamily = familyMembers.length > 0;
-
-  // Calculate summary metrics
-  const totalExpense = dailyStats?.reduce((acc, curr) => acc + (curr.expense || 0), 0) || 0;
 
   return (
     <div className="p-4 space-y-6 max-w-5xl mx-auto">
@@ -50,7 +44,6 @@ export default async function ReportsPage({
           title="Báo cáo & Phân tích"
           description="Tổng quan tài chính của bạn"
         >
-          {/* Report Filters aligned with header if space permits, or below */}
         </PageHeader>
 
         <ReportFilters
@@ -59,12 +52,16 @@ export default async function ReportsPage({
         />
       </div>
 
-      <ReportSummary expense={totalExpense} />
+      {/* Main Content */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Spending Analysis (Top) */}
+        <SpendingAnalysis
+          summary={monthlySummary}
+          categories={categoryStats}
+        />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MonthlyChart data={dailyStats || []} />
-        <CategoryPieChart data={categoryStats || []} />
-        <YearlyComparison data={yearlyComparison || []} />
+        {/* Trend Chart (Bottom) */}
+        <RecentTrendChart data={sixMonthTrend || []} />
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { TransactionWithCategory } from "@/actions/transaction";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionGroup } from "./transaction-group";
@@ -53,8 +52,6 @@ export function TransactionList({
   // Calculate container height
   useEffect(() => {
     if (!isFullPage) {
-      // Dashboard mode: use fixed height
-      setContainerHeight(400);
       return;
     }
 
@@ -137,7 +134,7 @@ export function TransactionList({
     <div ref={parentRef} className="w-full h-full">
       <List
         ref={listRef}
-        height={containerHeight}
+        height={isFullPage ? containerHeight : 400}
         itemCount={groupedTransactions.length}
         itemSize={getItemSize}
         width="100%"

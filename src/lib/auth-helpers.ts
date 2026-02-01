@@ -15,7 +15,7 @@ export async function getAuthenticatedUser() {
     throw new Error("Unauthorized");
   }
 
-  const userId = (session.user as any).id;
+  const userId = session.user.id;
 
   if (!userId) {
     console.error("getAuthenticatedUser: Session found but no user ID", session.user);

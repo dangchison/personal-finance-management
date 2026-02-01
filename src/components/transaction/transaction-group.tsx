@@ -37,6 +37,7 @@ export function TransactionGroup({ date, transactions, onEdit, onView, readOnly 
           <TransactionItem
             key={transaction.id}
             transaction={transaction}
+            onEdit={onEdit}
             onView={onView}
             readOnly={readOnly}
           />

@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.username = user.username;
         // Handle remember me
-        const rememberMe = (user as any).rememberMe;
+        const rememberMe = user.rememberMe;
         const now = Math.floor(Date.now() / 1000);
 
         if (rememberMe) {

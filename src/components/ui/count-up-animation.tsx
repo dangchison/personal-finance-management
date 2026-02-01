@@ -10,13 +10,10 @@ interface CountUpAnimationProps {
 }
 
 export function CountUpAnimation({ end, duration = 1500, formatNumber }: CountUpAnimationProps) {
-  const [count, setCount] = useState(end);
-  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
     // Only animate on client-side
-    setShouldAnimate(true);
-    setCount(0);
 
     let startTime: number | null = null;
     const startValue = 0;

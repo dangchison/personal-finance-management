@@ -38,6 +38,7 @@ export function UserNav() {
   };
 
   const completeLogout = () => {
+    localStorage.removeItem("hasSeenWelcome");
     signOut({ callbackUrl: "/login" });
   };
 

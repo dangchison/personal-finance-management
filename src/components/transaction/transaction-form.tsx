@@ -35,7 +35,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { updateTransaction, createTransaction } from "@/actions/transaction";
-import { Category, Transaction, PaymentMethod } from "@prisma/client";
+import { Category, Transaction } from "@prisma/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({

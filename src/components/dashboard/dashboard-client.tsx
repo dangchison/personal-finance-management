@@ -51,11 +51,11 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   const [navLoading, setNavLoading] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
-  // Check sessionStorage only on client-side to avoid hydration errors
+  // Check localStorage only on client-side to avoid hydration errors
   useEffect(() => {
-    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     if (!hasSeenWelcome) {
-      sessionStorage.setItem('hasSeenWelcome', 'true');
+      localStorage.setItem('hasSeenWelcome', 'true');
       setShowWelcome(true);
     }
   }, []);
