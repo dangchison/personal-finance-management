@@ -98,18 +98,18 @@ export function TransactionDetailsModal({
         </div>
 
         <div className="flex items-center gap-3">
-          {(transaction as any).paymentMethod === "TRANSFER" ? (
+          {transaction.paymentMethod === "TRANSFER" ? (
             <CreditCard className="h-5 w-5 text-muted-foreground" />
           ) : (
             <Wallet className="h-5 w-5 text-muted-foreground" />
           )}
           <div className="flex flex-col">
             <span className="text-base">
-              {(transaction as any).paymentMethod === "TRANSFER" ? "Chuyển khoản" : "Tiền mặt"}
+              {transaction.paymentMethod === "TRANSFER" ? "Chuyển khoản" : "Tiền mặt"}
             </span>
-            {(transaction as any).paymentMethod === "TRANSFER" && (transaction as any).transferCode && (
+            {transaction.paymentMethod === "TRANSFER" && transaction.transferCode && (
               <span className="text-xs text-muted-foreground">
-                Mã: {(transaction as any).transferCode}
+                Mã: {transaction.transferCode}
               </span>
             )}
           </div>
@@ -126,6 +126,7 @@ export function TransactionDetailsModal({
           <div className="flex items-center gap-3">
             <div className="h-5 w-5 flex items-center justify-center">
               {transaction.user.image ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={transaction.user.image}
                   alt={transaction.user.name || "User"}

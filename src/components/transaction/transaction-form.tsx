@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { CalendarIcon, ChevronDown } from "lucide-react";
@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
-import { updateTransaction, createTransaction } from "@/actions/transaction";
+import { updateTransaction, createTransaction, TransactionWithCategory } from "@/actions/transaction";
 import { Category, Transaction } from "@prisma/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -52,7 +52,7 @@ type TransactionFormValues = z.infer<typeof formSchema>;
 
 interface TransactionFormProps {
   categories: Category[];
-  initialData?: Transaction | null;
+  initialData?: Transaction | TransactionWithCategory | null;
   onSuccess: () => void;
 }
 
@@ -69,8 +69,8 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
       type: initialData.type as "INCOME" | "EXPENSE",
       categoryId: initialData.categoryId,
       date: new Date(initialData.date),
-      paymentMethod: ((initialData as any).paymentMethod as "CASH" | "TRANSFER") || "CASH",
-      transferCode: (initialData as any).transferCode || "",
+      paymentMethod: (initialData.paymentMethod as "CASH" | "TRANSFER") || "CASH",
+      transferCode: initialData.transferCode || "",
     } : {
       amount: 0,
       description: "",
@@ -82,6 +82,12 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
     },
   });
 
+  // Use useWatch to subscription to the value to avoid React Compiler issues
+  const paymentMethod = useWatch({
+    control: form.control,
+    name: "paymentMethod",
+  });
+
   useEffect(() => {
     if (initialData) {
       form.reset({
@@ -90,8 +96,8 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
         type: initialData.type as "INCOME" | "EXPENSE",
         categoryId: initialData.categoryId,
         date: new Date(initialData.date),
-        paymentMethod: ((initialData as any).paymentMethod as "CASH" | "TRANSFER") || "CASH",
-        transferCode: (initialData as any).transferCode || "",
+        paymentMethod: (initialData.paymentMethod as "CASH" | "TRANSFER") || "CASH",
+        transferCode: initialData.transferCode || "",
       });
     }
   }, [initialData, form]);
@@ -209,7 +215,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
           )}
         />
 
-        {form.watch("paymentMethod") === "TRANSFER" && (
+        {paymentMethod === "TRANSFER" && (
           <FormField
             control={form.control}
             name="transferCode"

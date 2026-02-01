@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Category, TransactionType } from "@prisma/client";
+import { Category } from "@prisma/client";
 import {
     Dialog,
     DialogContent,
@@ -93,7 +93,8 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
                     toast.error(result.error || "Có lỗi xảy ra");
                 }
             }
-        } catch (error) {
+        } catch {
+            // Error handled by result check above if needed, or generic error here
             toast.error("Có lỗi xảy ra");
         } finally {
             setLoading(false);

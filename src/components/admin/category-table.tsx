@@ -44,7 +44,7 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
             } else {
                 toast.error(result.error || "Không thể xóa danh mục");
             }
-        } catch (error) {
+        } catch {
             toast.error("Có lỗi xảy ra khi xóa");
         } finally {
             setDeletingId(null);
@@ -75,8 +75,8 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
                                 <TableCell>
                                     <Badge
                                         className={`px-4 py-1 rounded-full text-sm font-medium border-0 shadow-sm ${category.type === 'INCOME'
-                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                                                : 'bg-rose-500 hover:bg-rose-600 text-white'
+                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                            : 'bg-rose-500 hover:bg-rose-600 text-white'
                                             }`}
                                     >
                                         {category.type === 'INCOME' ? 'Thu nhập' : 'Chi tiêu'}
@@ -107,7 +107,7 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
                                                 <AlertDialogHeader>
                                                     <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
                                                     <AlertDialogDescription>
-                                                        Hành động này không thể hoàn tác. Danh mục <span className="font-semibold text-foreground">"{category.name}"</span> sẽ bị xóa vĩnh viễn khỏi hệ thống.
+                                                        Hành động này không thể hoàn tác. Danh mục <span className="font-semibold text-foreground">&quot;{category.name}&quot;</span> sẽ bị xóa vĩnh viễn khỏi hệ thống.
                                                         <br /><br />
                                                         Lưu ý: Không thể xóa danh mục nếu đã có giao dịch gắn với nó.
                                                     </AlertDialogDescription>

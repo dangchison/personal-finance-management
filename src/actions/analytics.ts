@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
 import { eachDayOfInterval, format } from "date-fns";
+import { Prisma } from "@prisma/client";
 
 export async function getDailyStats(
   startDate?: Date,
@@ -23,7 +24,7 @@ export async function getDailyStats(
     const end = endDate || now;
     end.setHours(23, 59, 59, 999);
 
-    const where: any = {
+    const where: Prisma.TransactionWhereInput = {
       date: {
         gte: start,
         lte: end
@@ -97,7 +98,7 @@ export async function getCategoryStats(
     const start = startDate || new Date(now.getFullYear(), now.getMonth(), 1); // Default current month
     const end = endDate || now;
 
-    const where: any = {
+    const where: Prisma.TransactionWhereInput = {
       date: {
         gte: start,
         lte: end
@@ -160,7 +161,7 @@ export async function getYearlyComparison(
     const lastYear = currentYear - 1;
 
     // Define filter based on scope
-    const where: any = {
+    const where: Prisma.TransactionWhereInput = {
       type: "EXPENSE",
       deletedAt: null
     };
@@ -236,7 +237,7 @@ export async function getSixMonthTrend(
     // e.g. If now is Feb 2026, we want: Sep, Oct, Nov, Dec, Jan, Feb
     const startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
-    const where: any = {
+    const where: Prisma.TransactionWhereInput = {
       type: "EXPENSE",
       deletedAt: null,
       date: {
@@ -309,7 +310,7 @@ export async function getMonthlySummary(
     const start = startDate || new Date(now.getFullYear(), now.getMonth(), 1);
     const end = endDate || now;
 
-    const where: any = {
+    const where: Prisma.TransactionWhereInput = {
       date: {
         gte: start,
         lte: end

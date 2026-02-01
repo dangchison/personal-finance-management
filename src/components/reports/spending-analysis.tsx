@@ -33,23 +33,34 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
         color: COLORS[index % COLORS.length]
     })), [categories, totalExpense]);
 
-    const onPieEnter = (_: any, index: number) => {
+    const onPieEnter = (_: unknown, index: number) => {
         setActiveIndex(index);
     };
 
-    const renderActiveShape = (props: any) => {
-        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    const renderShape = (props: unknown) => {
+        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, index } = props as {
+            cx: number;
+            cy: number;
+            innerRadius: number;
+            outerRadius: number;
+            startAngle: number;
+            endAngle: number;
+            fill: string;
+            index: number;
+        };
+        const isActive = activeIndex === index;
+
         return (
             <g style={{ outline: 'none' }}>
                 <Sector
                     cx={cx}
                     cy={cy}
                     innerRadius={innerRadius}
-                    outerRadius={outerRadius + 10}
+                    outerRadius={isActive ? outerRadius + 10 : outerRadius}
                     startAngle={startAngle}
                     endAngle={endAngle}
                     fill={fill}
-                    style={{ outline: 'none' }}
+                    style={{ outline: 'none', cursor: 'pointer' }}
                 />
             </g>
         );
@@ -109,12 +120,11 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                                             dataKey="value"
                                             stroke="none"
                                             isAnimationActive={true}
-                                            activeShape={renderActiveShape}
+                                            shape={renderShape}
                                             onMouseEnter={onPieEnter}
                                             onMouseLeave={() => setActiveIndex(undefined)}
                                             onClick={onPieEnter}
                                             style={{ cursor: 'pointer', outline: 'none' }}
-                                            {...{ activeIndex } as any}
                                         >
                                             {categoriesWithPercent.map((entry, index) => (
                                                 <Cell
@@ -161,7 +171,7 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                                             <div className="flex items-center gap-3">
                                                 <div
                                                     className="w-3 h-3 rounded-full ring-2 ring-offset-2 ring-offset-background"
-                                                    style={{ backgroundColor: cat.color, '--tw-ring-color': cat.color } as any}
+                                                    style={{ backgroundColor: cat.color, '--tw-ring-color': cat.color } as React.CSSProperties}
                                                 />
                                                 <span className={cn(
                                                     "text-sm transition-all origin-left",

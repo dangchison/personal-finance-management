@@ -46,7 +46,7 @@ export function RecentTrendChart({ data }: RecentTrendChartProps) {
                             <Tooltip
                                 cursor={{ fill: 'transparent' }}
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                formatter={(value: any) => [
+                                formatter={(value: number | undefined) => [
                                     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0),
                                     "Chi tiêu"
                                 ]}

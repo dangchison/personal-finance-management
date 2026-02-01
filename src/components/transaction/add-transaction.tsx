@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -20,12 +19,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Category, Transaction } from "@prisma/client";
+import { TransactionWithCategory } from "@/actions/transaction";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { TransactionForm } from "./transaction-form";
 
 interface AddTransactionProps {
   categories: Category[];
-  initialData?: Transaction | null;
+  initialData?: Transaction | TransactionWithCategory | null;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }

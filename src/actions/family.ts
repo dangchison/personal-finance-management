@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
-import { USER_SELECT, FAMILY_WITH_USERS_SELECT, USER_SELECT_BASIC } from "@/lib/prisma-selects";
+import { FAMILY_WITH_USERS_SELECT, USER_SELECT_BASIC } from "@/lib/prisma-selects";
 import { revalidateDashboard } from "@/lib/revalidation";
 
 export async function createFamily(name: string) {

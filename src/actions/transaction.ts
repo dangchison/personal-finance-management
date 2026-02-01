@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { getAuthenticatedUser, getAuthenticatedUserOrNull } from "@/lib/auth-helpers";
 import { USER_SELECT_BASIC } from "@/lib/prisma-selects";
 import { revalidateTransactionPages } from "@/lib/revalidation";
-import { Category, Transaction, PaymentMethod } from "@prisma/client";
+import { Category, Transaction, PaymentMethod, Prisma } from "@prisma/client";
 
 export type TransactionWithCategory = Omit<Transaction, "amount"> & {
   amount: number;
@@ -93,7 +93,7 @@ export async function getTransactions(
   try {
     const user = await getAuthenticatedUser();
     const userId = user.id;
-    const where: any = {
+    const where: Prisma.TransactionWhereInput = {
       deletedAt: null,
     };
 
@@ -176,7 +176,7 @@ export async function getTransactions(
       console.error("Failed to fetch transactions:", error);
       return [];
     }
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -204,21 +204,6 @@ export async function getMonthlyStats() {
     // Previous Month (VN -> UTC)
     const startPrev = new Date(Date.UTC(vnYear, vnMonth - 1, 1) - offsetMs);
     const endPrev = new Date(Date.UTC(vnYear, vnMonth, 0, 23, 59, 59, 999) - offsetMs);
-
-    const aggregates = await prisma.transaction.groupBy({
-      by: ['type'],
-      where: {
-        userId: user.id,
-        deletedAt: null,
-        date: {
-          gte: startPrev, // Fetch from start of previous month
-          lte: end,       // To end of current month
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
 
     // We need to group by month to separate them, OR we can run two queries.
     // groupBy doesn't support grouping by date trunc easily in Prisma without raw query.

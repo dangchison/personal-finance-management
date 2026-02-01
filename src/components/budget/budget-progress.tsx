@@ -10,7 +10,6 @@ interface BudgetProgressProps {
   total: number;
   percentage: number;
   isOverBudget: boolean;
-  currency?: string;
   className?: string;
 }
 
@@ -20,7 +19,6 @@ export function BudgetProgress({
   total,
   percentage,
   isOverBudget,
-  currency = "VND",
   className,
 }: BudgetProgressProps) {
   // Determine color

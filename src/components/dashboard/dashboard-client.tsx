@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { List, BarChart3, Users, Filter } from "lucide-react";
@@ -23,6 +22,11 @@ import { TransactionFilters } from "@/components/transaction/transaction-filters
 // Match TransactionList requirements
 import { TransactionWithCategory } from "@/actions/transaction";
 
+export interface BudgetProgress {
+  amount: number;
+  spent: number;
+}
+
 interface DashboardClientProps {
   user: {
     name?: string | null;
@@ -38,7 +42,7 @@ interface DashboardClientProps {
     previousExpense?: number;
   };
   familyMembers?: { id: string; name: string | null; image: string | null }[];
-  budgetProgress?: any[]; // Using any to avoid type complexity for now
+  budgetProgress?: BudgetProgress[];
 }
 
 export function DashboardClient({ user, categories, transactions, stats, familyMembers = [], budgetProgress = [] }: DashboardClientProps) {
@@ -56,7 +60,8 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     if (!hasSeenWelcome) {
       localStorage.setItem('hasSeenWelcome', 'true');
-      setShowWelcome(true);
+      // Use setTimeout to avoid synchronous state update in effect
+      setTimeout(() => setShowWelcome(true), 0);
     }
   }, []);
 
@@ -106,7 +111,6 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
 
   // Calculate percentage change for expense
   const prevExpense = stats.previousExpense || 0;
-  const expenseDiff = stats.expense - prevExpense;
   // If previous is 0, and current is > 0, it's 100% increase (technically infinite, but 100% fits UI). 
   // If both 0, it's 0%.
   const expensePercent = prevExpense === 0
@@ -335,7 +339,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
         {/* Edit Dialog */}
         <AddTransaction
           categories={categories}
-          initialData={editingTransaction as any}
+          initialData={editingTransaction}
           open={isEditOpen}
           onOpenChange={onOpenChange}
         />

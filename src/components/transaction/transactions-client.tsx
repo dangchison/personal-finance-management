@@ -152,7 +152,7 @@ export function TransactionsClient({
 
       <AddTransaction
         categories={categories}
-        initialData={editingTransaction as any}
+        initialData={editingTransaction}
         open={isEditOpen}
         onOpenChange={onOpenChange}
       />

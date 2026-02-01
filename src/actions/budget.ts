@@ -3,7 +3,7 @@
 import prisma from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
-import { Budget, Category } from "@prisma/client";
+import { Budget, Category, Prisma } from "@prisma/client";
 
 // Define the shape of a Budget with relations and converted Decimal
 export type BudgetWithCategory = Omit<Budget, "amount"> & {
@@ -30,7 +30,7 @@ export async function upsertBudget(data: {
     });
 
     const familyId = dbUser?.familyId;
-    const whereClause: any = {
+    const whereClause: Prisma.BudgetWhereInput = {
       categoryId: data.categoryId,
       userId: user.id,
     };
@@ -59,7 +59,7 @@ export async function upsertBudget(data: {
           categoryId: data.categoryId,
           userId: user.id,
           familyId: familyId,
-        } as any
+        }
       });
     }
 
@@ -93,9 +93,9 @@ export async function getBudgets(): Promise<BudgetWithCategory[]> {
       include: {
         category: true
       }
-    }) as any;
+    });
 
-    return budgets.map((b: any) => ({
+    return budgets.map((b) => ({
       ...b,
       amount: b.amount.toNumber()
     }));
@@ -117,7 +117,7 @@ export async function getBudgetProgress(): Promise<BudgetProgress[]> {
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
     const progress = await Promise.all(budgets.map(async (budget) => {
-      const where: any = {
+      const where: Prisma.TransactionWhereInput = {
         categoryId: budget.categoryId,
         type: "EXPENSE",
         date: {

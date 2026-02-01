@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getCategories, getTransactions, getMonthlyStats, TransactionWithCategory } from "@/actions/transaction";
+import { getCategories, getTransactions, getMonthlyStats } from "@/actions/transaction";
 import { getBudgetProgress } from "@/actions/budget";
 import { getFamilyMembers } from "@/actions/family";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
@@ -42,9 +42,9 @@ export default async function DashboardPage({
 
   const [categories, transactions, stats, familyMembers, budgetProgress] = await Promise.all([
     getCategories(),
-    getTransactions(50, 0, { scope, categoryId, memberId, startDate, endDate }) as Promise<TransactionWithCategory[]>,
+    getTransactions(50, 0, { scope, categoryId, memberId, startDate, endDate }),
     getMonthlyStats(),
-    getFamilyMembers() as Promise<any>,
+    getFamilyMembers(),
     getBudgetProgress(),
   ]);
 

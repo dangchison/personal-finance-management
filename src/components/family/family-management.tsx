@@ -58,7 +58,7 @@ export function FamilyManagement({ initialFamily }: FamilyManagementProps) {
       toast.error(result.error);
     } else {
       toast.success("Tạo gia đình thành công!");
-      setFamily(result.data as any); // Type assertion needed or fix action return type
+      setFamily(result.data as FamilyData); // Type assertion needed or fix action return type
       router.refresh();
     }
     setLoading(false);
@@ -75,7 +75,7 @@ export function FamilyManagement({ initialFamily }: FamilyManagementProps) {
       toast.error(result.error);
     } else {
       toast.success("Tham gia gia đình thành công!");
-      setFamily(result.data as any);
+      setFamily(result.data as FamilyData);
       router.refresh();
     }
     setLoading(false);
