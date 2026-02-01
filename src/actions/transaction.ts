@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { getAuthenticatedUser, getAuthenticatedUserOrNull } from "@/lib/auth-helpers";
 import { USER_SELECT_BASIC } from "@/lib/prisma-selects";
 import { revalidateTransactionPages } from "@/lib/revalidation";
-import { Category, Transaction } from "@prisma/client";
+import { Category, Transaction, PaymentMethod } from "@prisma/client";
 
 export type TransactionWithCategory = Omit<Transaction, "amount"> & {
   amount: number;
@@ -23,6 +23,8 @@ export async function createTransaction(data: {
   type: "INCOME" | "EXPENSE";
   categoryId: string;
   date: Date;
+  paymentMethod?: PaymentMethod;
+  transferCode?: string;
 }) {
   try {
     const user = await getAuthenticatedUser();
@@ -35,6 +37,8 @@ export async function createTransaction(data: {
         categoryId: data.categoryId,
         date: data.date,
         userId: user.id,
+        paymentMethod: data.paymentMethod || "CASH",
+        transferCode: data.transferCode,
       },
     });
 
@@ -294,6 +298,8 @@ export async function updateTransaction(id: string, data: {
   type: "INCOME" | "EXPENSE";
   categoryId: string;
   date: Date;
+  paymentMethod?: PaymentMethod;
+  transferCode?: string;
 }) {
   try {
     const user = await getAuthenticatedUser();
@@ -313,8 +319,10 @@ export async function updateTransaction(id: string, data: {
         amount: data.amount,
         description: data.description,
         type: data.type,
-        categoryId: data.categoryId,
+        category: { connect: { id: data.categoryId } },
         date: data.date,
+        paymentMethod: data.paymentMethod,
+        transferCode: data.transferCode,
       },
     });
 

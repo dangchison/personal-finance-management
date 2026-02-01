@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { TransactionWithCategory } from "@/actions/transaction";
-import { Edit, Calendar, Tag, Hash, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Edit, Calendar, Tag, Hash, ArrowDownLeft, ArrowUpRight, Wallet, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -94,6 +94,24 @@ export function TransactionDetailsModal({
           <Tag className="h-5 w-5 text-muted-foreground" />
           <div className="px-3 py-1 rounded-md bg-primary/10 text-primary font-medium">
             {transaction.category.name}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {(transaction as any).paymentMethod === "TRANSFER" ? (
+            <CreditCard className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <Wallet className="h-5 w-5 text-muted-foreground" />
+          )}
+          <div className="flex flex-col">
+            <span className="text-base">
+              {(transaction as any).paymentMethod === "TRANSFER" ? "Chuyển khoản" : "Tiền mặt"}
+            </span>
+            {(transaction as any).paymentMethod === "TRANSFER" && (transaction as any).transferCode && (
+              <span className="text-xs text-muted-foreground">
+                Mã: {(transaction as any).transferCode}
+              </span>
+            )}
           </div>
         </div>
 

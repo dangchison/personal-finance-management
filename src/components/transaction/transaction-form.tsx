@@ -35,7 +35,8 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { updateTransaction, createTransaction } from "@/actions/transaction";
-import { Category, Transaction } from "@prisma/client";
+import { Category, Transaction, PaymentMethod } from "@prisma/client";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
   amount: z.coerce.number().positive("Số tiền phải lớn hơn 0"),
@@ -43,6 +44,8 @@ const formSchema = z.object({
   type: z.enum(["INCOME", "EXPENSE"]),
   categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
   date: z.date(),
+  paymentMethod: z.enum(["CASH", "TRANSFER"]),
+  transferCode: z.string().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof formSchema>;
@@ -66,12 +69,16 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
       type: initialData.type as "INCOME" | "EXPENSE",
       categoryId: initialData.categoryId,
       date: new Date(initialData.date),
+      paymentMethod: ((initialData as any).paymentMethod as "CASH" | "TRANSFER") || "CASH",
+      transferCode: (initialData as any).transferCode || "",
     } : {
       amount: 0,
       description: "",
       type: "EXPENSE",
       categoryId: "",
       date: new Date(),
+      paymentMethod: "CASH",
+      transferCode: "",
     },
   });
 
@@ -83,6 +90,8 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
         type: initialData.type as "INCOME" | "EXPENSE",
         categoryId: initialData.categoryId,
         date: new Date(initialData.date),
+        paymentMethod: ((initialData as any).paymentMethod as "CASH" | "TRANSFER") || "CASH",
+        transferCode: (initialData as any).transferCode || "",
       });
     }
   }, [initialData, form]);
@@ -136,10 +145,16 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
                 <div className="relative">
                   <Input
                     {...field}
-                    value={field.value as number}
+                    value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value as number) : ""}
+                    onChange={(e) => {
+                      // Remove non-digits (keep only numbers)
+                      const rawValue = e.target.value.replace(/\D/g, "");
+                      const numberValue = Number(rawValue);
+                      field.onChange(numberValue);
+                    }}
                     placeholder="0"
-                    type="number"
-                    min="0"
+                    type="text"
+                    inputMode="numeric"
                     className="pl-8 text-lg font-bold"
                     disabled={loading}
                   />
@@ -175,7 +190,40 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="paymentMethod"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Hình thức thanh toán</FormLabel>
+              <FormControl>
+                <Tabs onValueChange={field.onChange} value={field.value} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="CASH">Tiền mặt</TabsTrigger>
+                    <TabsTrigger value="TRANSFER">Chuyển khoản</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
+        {form.watch("paymentMethod") === "TRANSFER" && (
+          <FormField
+            control={form.control}
+            name="transferCode"
+            render={({ field }) => (
+              <FormItem className="animate-in fade-in slide-in-from-top-2">
+                <FormLabel>Mã giao dịch (Tùy chọn)</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nhập mã giao dịch / ghi chú chuyển khoản" disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="description"

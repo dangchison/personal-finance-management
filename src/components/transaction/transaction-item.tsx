@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownLeft, ArrowUpRight, Tag } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Tag, Wallet, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TransactionWithCategory } from "@/actions/transaction";
 import { formatCurrency } from "@/lib/format-currency";
@@ -42,6 +42,14 @@ export function TransactionItem({ transaction, onView, readOnly = false }: Trans
               <span className="flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded-md">
                 <Tag className="h-3 w-3" />
                 <span className="truncate max-w-[80px] sm:max-w-none">{transaction.category.name}</span>
+              </span>
+              <span className="flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded-md">
+                {(transaction as any).paymentMethod === "TRANSFER" ? (
+                  <CreditCard className="h-3 w-3" />
+                ) : (
+                  <Wallet className="h-3 w-3" />
+                )}
+                <span>{(transaction as any).paymentMethod === "TRANSFER" ? "CK" : "TM"}</span>
               </span>
             </div>
           </div>

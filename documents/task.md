@@ -72,12 +72,12 @@
     - [x] Simplify Dashboard Filters (Current Month Only) <!-- id: 60 -->
 
 
-## Release 1.1: Admin Features (Current)
-- [ ] **Architecture**
+## Release 1.1: Admin Features (Completed)
+- [x] **Architecture**
     - [x] Update NextAuth to include Role in Session <!-- id: 54 -->
-    - [x] Create Admin Layout & Route Protection (`/admin`) <!-- id: 55 -->
-- [ ] **Admin: Category Management**
+    - [x] Integrated Admin Category Management into Settings Page <!-- id: 61 -->
+- [x] **Admin: Category Management**
     - [x] Server Action: `getSystemCategories`, `create`, `update`, `delete` <!-- id: 56 -->
-    - [x] Integrate System Categories Tab in Settings Page <!-- id: 61 -->
-    - [x] UI: Category List Table & Dialog <!-- id: 57 -->
+    - [x] UI: Category List Table & Dialog (Modern UI) <!-- id: 57 -->
     - [x] Verify Admin Permissions & Security <!-- id: 59 -->
+    - [x] Fix Dashboard Stats Timezone Issue (UTC+7) <!-- id: 62 -->
