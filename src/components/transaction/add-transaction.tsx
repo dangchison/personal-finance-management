@@ -28,9 +28,10 @@ interface AddTransactionProps {
   initialData?: Transaction | TransactionWithCategory | null;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onTransactionAdded?: () => void;
 }
 
-export function AddTransaction({ categories, initialData, open: controlledOpen, onOpenChange: setControlledOpen }: AddTransactionProps) {
+export function AddTransaction({ categories, initialData, open: controlledOpen, onOpenChange: setControlledOpen, onTransactionAdded }: AddTransactionProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -44,6 +45,7 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
 
   const onSuccess = () => {
     setOpen(false);
+    onTransactionAdded?.();
   };
 
   if (isDesktop) {

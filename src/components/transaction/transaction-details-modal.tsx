@@ -9,9 +9,9 @@ import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format-currency";
 import {
-  Dialog,
-  DialogContent,
+  Dialog as DialogRoot,
   DialogHeader,
+  DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -38,6 +38,7 @@ export function TransactionDetailsModal({
 }: TransactionDetailsModalProps) {
   const [isDesktop, setIsDesktop] = useState(false);
 
+
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
     checkDesktop();
@@ -46,6 +47,8 @@ export function TransactionDetailsModal({
   }, []);
 
   if (!transaction) return null;
+
+
 
   const content = (
     <div className="space-y-6 py-4">
@@ -159,14 +162,14 @@ export function TransactionDetailsModal({
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogRoot open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Chi tiết giao dịch</DialogTitle>
           </DialogHeader>
           {content}
         </DialogContent>
-      </Dialog>
+      </DialogRoot>
     );
   }
 

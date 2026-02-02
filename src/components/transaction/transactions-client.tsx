@@ -6,6 +6,7 @@ import { TransactionList } from "@/components/transaction/transaction-list";
 import { Category } from "@prisma/client";
 import { TransactionWithCategory } from "@/actions/transaction";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isSameMonth } from "date-fns";
 import { TransactionFilters } from "./transaction-filters";
 import { TransactionDetailsModal } from "./transaction-details-modal";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
@@ -53,6 +54,13 @@ export function TransactionsClient({
 
   const handleEdit = (transaction: TransactionWithCategory) => {
     if (scope === 'family') return;
+
+    // If transaction is not in current month, only allow viewing
+    if (!isSameMonth(new Date(transaction.date), new Date())) {
+      handleView(transaction);
+      return;
+    }
+
     setEditingTransaction(transaction);
     setIsEditOpen(true);
     setIsViewOpen(false); // Close view if open
@@ -163,7 +171,7 @@ export function TransactionsClient({
         open={isViewOpen}
         onOpenChange={setIsViewOpen}
         onEdit={handleEditFromView}
-        readOnly={scope === 'family'}
+        readOnly={scope === 'family' || (viewingTransaction ? !isSameMonth(new Date(viewingTransaction.date), new Date()) : false)}
       />
 
       <style jsx global>{`
