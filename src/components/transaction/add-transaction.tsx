@@ -90,7 +90,7 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
       )}
       <SheetContent
         side="bottom"
-        className="h-[95%] rounded-t-[20px] px-4"
+        className="max-h-[95vh] rounded-t-[20px] px-4 overflow-y-auto"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >

@@ -223,7 +223,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
               <FormItem className="animate-in fade-in slide-in-from-top-2">
                 <FormLabel>Mã giao dịch (Tùy chọn)</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Nhập mã giao dịch / ghi chú chuyển khoản" disabled={loading} />
+                  <Input {...field} value={field.value || ""} placeholder="Nhập mã giao dịch / ghi chú chuyển khoản" disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
