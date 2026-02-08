@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { formatNumber } from "@/lib/format-currency";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -151,7 +152,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
                 <div className="relative">
                   <Input
                     {...field}
-                    value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value as number) : ""}
+                    value={field.value ? formatNumber(field.value as number) : ""}
                     onChange={(e) => {
                       // Remove non-digits (keep only numbers)
                       const rawValue = e.target.value.replace(/\D/g, "");

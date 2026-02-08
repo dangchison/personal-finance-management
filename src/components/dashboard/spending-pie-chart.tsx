@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { formatCurrencyFull } from "@/lib/format-currency";
 
 interface SpendingPieChartProps {
   data: {
@@ -16,9 +17,6 @@ const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#F43F5E', '#8B5CF6', '#EC4899'
 
 export function SpendingPieChart({ data }: SpendingPieChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>();
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 
   // Calculate percentages
   const totalExpense = useMemo(() => data.reduce((acc, curr) => acc + curr.value, 0), [data]);
@@ -107,7 +105,7 @@ export function SpendingPieChart({ data }: SpendingPieChartProps) {
             {/* Center Text */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
               <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">Tổng chi</span>
-              <span className="text-sm font-bold text-foreground">{formatCurrency(totalExpense)}</span>
+              <span className="text-sm font-bold text-foreground">{formatCurrencyFull(totalExpense)}</span>
             </div>
           </div>
 
@@ -142,7 +140,7 @@ export function SpendingPieChart({ data }: SpendingPieChartProps) {
                       "transition-all",
                       isActive ? "font-bold" : ""
                     )}>
-                      {formatCurrency(cat.value)}
+                      {formatCurrencyFull(cat.value)}
                     </span>
                     <span className="text-xs text-muted-foreground w-[32px] text-right">
                       {cat.percent.toFixed(0)}%

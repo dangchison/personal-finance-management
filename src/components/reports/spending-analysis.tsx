@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { formatCurrencyFull } from "@/lib/format-currency";
 
 interface SpendingAnalysisProps {
     summary: {
@@ -21,9 +22,6 @@ const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#F43F5E', '#8B5CF6', '#EC4899'
 
 export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps) {
     const [activeIndex, setActiveIndex] = useState<number | undefined>();
-
-    const formatCurrency = (value: number) =>
-        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 
     // Calculate percentages
     const totalExpense = summary.expense;
@@ -79,7 +77,7 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                             Chi tiêu
                         </div>
                         <div className="text-xl font-bold text-rose-600 dark:text-rose-500">
-                            {formatCurrency(summary.expense)}
+                            {formatCurrencyFull(summary.expense)}
                         </div>
                     </CardContent>
                 </Card>
@@ -92,7 +90,7 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                             Thu nhập
                         </div>
                         <div className="text-xl font-bold text-emerald-600 dark:text-emerald-500">
-                            {formatCurrency(summary.income)}
+                            {formatCurrencyFull(summary.income)}
                         </div>
                     </CardContent>
                 </Card>
@@ -185,7 +183,7 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                                                 "text-sm transition-all text-foreground origin-right",
                                                 isActive ? "font-extrabold scale-110" : "font-bold"
                                             )}>
-                                                {formatCurrency(cat.value)}
+                                                {formatCurrencyFull(cat.value)}
                                             </span>
                                         </div>
                                     );

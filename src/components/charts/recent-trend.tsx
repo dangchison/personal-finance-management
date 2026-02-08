@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrencyFull } from "@/lib/format-currency";
 
 interface RecentTrendChartProps {
     data: {
@@ -47,7 +48,7 @@ export function RecentTrendChart({ data }: RecentTrendChartProps) {
                                 cursor={{ fill: 'transparent' }}
                                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 formatter={(value: number | undefined) => [
-                                    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0),
+                                    formatCurrencyFull(value || 0),
                                     "Chi tiêu"
                                 ]}
                             />
@@ -63,10 +64,10 @@ export function RecentTrendChart({ data }: RecentTrendChartProps) {
                 </div>
                 <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground px-2">
                     <div>
-                        Tổng chi 6 tháng: <span className="font-medium text-foreground">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}</span>
+                        Tổng chi 6 tháng: <span className="font-medium text-foreground">{formatCurrencyFull(total)}</span>
                     </div>
                     <div>
-                        Trung bình: <span className="font-medium text-foreground">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(average)}/tháng</span>
+                        Trung bình: <span className="font-medium text-foreground">{formatCurrencyFull(average)}/tháng</span>
                     </div>
                 </div>
             </CardContent>
