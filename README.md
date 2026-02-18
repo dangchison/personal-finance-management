@@ -251,3 +251,5 @@ This project is licensed under the MIT License.
 ---
 
 **Built with ❤️ using Next.js 16 and TypeScript**
+
+** Happy New Year 2026 **
