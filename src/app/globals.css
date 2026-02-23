@@ -143,22 +143,3 @@
   background-size: 400% 400%;
   animation: gradient-xy 15s ease infinite;
 }
-
-/* Toast Glassmorphism Styling */
-[data-sonner-toast] {
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-}
-
-[data-sonner-toast] [data-title] {
-  color: white !important;
-  font-weight: 600 !important;
-}
-
-[data-sonner-toast] [data-description] {
-  color: rgba(255, 255, 255, 0.9) !important;
-}
-
-[data-sonner-toast] [data-icon] {
-  color: white !important;
-}

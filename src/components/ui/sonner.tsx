@@ -1,5 +1,6 @@
 "use client"
 
+import type { CSSProperties } from "react"
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -12,6 +13,7 @@ import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
+  const isDark = theme === "dark"
 
   return (
     <Sonner
@@ -27,27 +29,27 @@ const Toaster = ({ ...props }: ToasterProps) => {
         loading: <Loader2Icon className="size-5 animate-spin" />,
       }}
       style={{
-        "--normal-bg": "rgba(255, 255, 255, 0.1)",
-        "--normal-border": "rgba(255, 255, 255, 0.2)",
-        "--normal-text": "#ffffff",
-        "--success-bg": "rgba(34, 197, 94, 0.2)",
-        "--success-border": "rgba(74, 222, 128, 0.3)",
-        "--success-text": "#ffffff",
-        "--error-bg": "rgba(239, 68, 68, 0.2)",
-        "--error-border": "rgba(248, 113, 113, 0.3)",
-        "--error-text": "#ffffff",
-        "--warning-bg": "rgba(234, 179, 8, 0.2)",
-        "--warning-border": "rgba(250, 204, 21, 0.3)",
-        "--warning-text": "#ffffff",
-        "--info-bg": "rgba(59, 130, 246, 0.2)",
-        "--info-border": "rgba(96, 165, 250, 0.3)",
-        "--info-text": "#ffffff",
-      } as React.CSSProperties}
+        "--normal-bg": isDark ? "#1f2937" : "#ffffff",
+        "--normal-border": isDark ? "#374151" : "#e5e7eb",
+        "--normal-text": isDark ? "#f9fafb" : "#111827",
+        "--success-bg": isDark ? "#052e16" : "#ecfdf3",
+        "--success-border": isDark ? "#166534" : "#bbf7d0",
+        "--success-text": isDark ? "#dcfce7" : "#166534",
+        "--error-bg": isDark ? "#450a0a" : "#fef2f2",
+        "--error-border": isDark ? "#991b1b" : "#fecaca",
+        "--error-text": isDark ? "#fee2e2" : "#991b1b",
+        "--warning-bg": isDark ? "#422006" : "#fffbeb",
+        "--warning-border": isDark ? "#92400e" : "#fde68a",
+        "--warning-text": isDark ? "#fef3c7" : "#92400e",
+        "--info-bg": isDark ? "#172554" : "#eff6ff",
+        "--info-border": isDark ? "#1d4ed8" : "#bfdbfe",
+        "--info-text": isDark ? "#dbeafe" : "#1d4ed8",
+      } as CSSProperties}
       toastOptions={{
         classNames: {
-          toast: "backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl rounded-2xl p-4 gap-3",
-          title: "!text-white text-base font-semibold",
-          description: "!text-white/90 text-sm",
+          toast: "rounded-2xl border shadow-lg p-4 gap-3",
+          title: "text-base font-semibold",
+          description: "text-sm opacity-90",
         },
       }}
       {...props}

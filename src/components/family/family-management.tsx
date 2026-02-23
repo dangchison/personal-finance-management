@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createFamily, joinFamily, leaveFamily } from "@/actions/family";
 import { toast } from "sonner";
 import { Copy, LogOut, Users } from "lucide-react";
@@ -104,26 +103,81 @@ export function FamilyManagement({ initialFamily }: FamilyManagementProps) {
 
   if (family) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <Card className="border border-border/80 shadow-sm lg:col-span-8">
+          <CardHeader className="border-b border-border/70 pb-5">
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                <Users className="h-3.5 w-3.5" />
+                Nhóm đang hoạt động
+              </span>
+              <CardTitle className="text-2xl tracking-tight">{family.name}</CardTitle>
+              <CardDescription>Quản lý thành viên và chi tiêu chung của gia đình trong một nơi.</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-5 pt-6">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-2xl">{family.name}</CardTitle>
-                <CardDescription>Quản lý thành viên và chia sẻ chi tiêu</CardDescription>
-              </div>
+              <h3 className="text-sm font-semibold text-foreground">
+                Thành viên ({family.users?.length || 0})
+              </h3>
+              <p className="text-xs text-muted-foreground">Đồng bộ theo thời gian thực</p>
+            </div>
 
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(family.users || []).map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-3 rounded-xl border border-border/80 bg-muted/30 px-3 py-3"
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={member.image || ""} />
+                    <AvatarFallback>{member.name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{member.name || "Unnamed User"}</p>
+                    <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4 lg:col-span-4">
+          <Card className="border border-border/80 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Mã mời thành viên</CardTitle>
+              <CardDescription>Gửi mã này để mời người thân vào nhóm.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="rounded-xl border border-border/80 bg-muted/30 px-3 py-3">
+                <code className="block break-all text-sm font-semibold tracking-wide">{family.inviteCode}</code>
+              </div>
+              <Button variant="outline" onClick={copyInviteCode} className="w-full" disabled={loading}>
+                <Copy className="mr-2 h-4 w-4" />
+                Sao chép mã mời
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border/80 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Hành động nhóm</CardTitle>
+              <CardDescription>Rời nhóm khi bạn không còn nhu cầu theo dõi chi tiêu chung.</CardDescription>
+            </CardHeader>
+            <CardContent>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="icon" disabled={loading} title="Rời nhóm">
-                    <LogOut className="h-4 w-4" />
+                  <Button variant="outline" className="w-full justify-start text-red-600" disabled={loading}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Rời khỏi gia đình
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Rời khỏi gia đình?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Bạn có chắc chắn muốn rời khỏi gia đình này? Bạn sẽ không còn quyền truy cập vào các giao dịch của gia đình nữa.
+                      Bạn sẽ không còn quyền truy cập vào các giao dịch gia đình sau khi xác nhận.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -134,87 +188,73 @@ export function FamilyManagement({ initialFamily }: FamilyManagementProps) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-1">Mã mời thành viên</p>
-                <code className="text-lg font-bold tracking-wider break-all">{family.inviteCode}</code>
-              </div>
-              <Button variant="ghost" size="icon" onClick={copyInviteCode}>
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Thành viên ({family.users?.length || 0})
-              </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {(family.users || []).map((member) => (
-                  <div key={member.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Avatar>
-                      <AvatarImage src={member.image || ""} />
-                      <AvatarFallback>{member.name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div className="overflow-hidden">
-                      <p className="font-medium truncate">{member.name || "Unnamed User"}</p>
-                      <p className="text-xs text-muted-foreground truncate">{member.email}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8">
-      <Card>
+    <div className="space-y-4">
+      <Card className="border border-border/80 shadow-sm">
         <CardHeader>
-          <CardTitle>Gia đình & Chia sẻ</CardTitle>
+          <CardTitle className="text-xl tracking-tight">Gia đình & Chia sẻ</CardTitle>
           <CardDescription>
-            Tạo hoặc tham gia một nhóm gia đình để quản lý chi tiêu chung.
+            Tạo nhóm mới hoặc tham gia nhóm đã có để quản lý chi tiêu chung một cách minh bạch.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="create" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="create">Tạo mới</TabsTrigger>
-              <TabsTrigger value="join">Tham gia</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="create">
-              <form onSubmit={handleCreateFamily} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Tên gia đình</Label>
-                  <Input id="name" name="name" placeholder="Ví dụ: Gia đình Hạnh Phúc" required disabled={loading} />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Đang tạo..." : "Tạo Gia đình"}
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="join">
-              <form onSubmit={handleJoinFamily} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="code">Mã mời</Label>
-                  <Input id="code" name="code" placeholder="Nhập mã mời từ người thân" required disabled={loading} />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Đang tham gia..." : "Tham gia"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card className="border border-border/80 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Tạo nhóm mới</CardTitle>
+            <CardDescription>Bạn sẽ nhận được mã mời để chia sẻ với thành viên khác.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateFamily} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Tên gia đình</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Ví dụ: Gia đình Hạnh Phúc"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Đang tạo..." : "Tạo gia đình"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border/80 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Tham gia nhóm</CardTitle>
+            <CardDescription>Nhập mã mời từ người thân để vào nhóm hiện có.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleJoinFamily} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="code">Mã mời</Label>
+                <Input
+                  id="code"
+                  name="code"
+                  placeholder="Nhập mã mời"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <Button type="submit" variant="outline" className="w-full" disabled={loading}>
+                {loading ? "Đang tham gia..." : "Tham gia gia đình"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

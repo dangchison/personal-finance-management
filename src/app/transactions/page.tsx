@@ -46,8 +46,6 @@ export default async function TransactionsPage({
 
   return (
     <WorkspaceLayout
-      title="Lịch sử giao dịch"
-      description="Xem lại toàn bộ chi tiêu của bạn"
       maxWidthClassName="max-w-6xl"
       fullHeight
       contentInnerClassName="h-full p-4 sm:p-5"

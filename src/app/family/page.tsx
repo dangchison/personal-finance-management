@@ -9,10 +9,8 @@ export default async function FamilyPage() {
 
   return (
     <WorkspaceLayout
-      title="Quản lý Gia đình"
-      description="Tạo nhóm, mời thành viên và chia sẻ chi tiêu."
       maxWidthClassName="max-w-5xl"
-      contentInnerClassName="p-4 sm:p-5"
+      withPanel={false}
     >
       <div className="space-y-6">
         <FamilyManagement initialFamily={family} />

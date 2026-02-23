@@ -3,8 +3,7 @@
 import { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { List, BarChart3, Users, Filter, PanelRightOpen, PanelRightClose, ChartPie } from "lucide-react";
-import { UserNav } from "@/components/auth/user-nav";
+import { Filter, PanelRightOpen, PanelRightClose, ChartPie } from "lucide-react";
 import { AddTransaction } from "@/components/transaction/add-transaction";
 import { TransactionList } from "@/components/transaction/transaction-list";
 import { Category } from "@prisma/client";
@@ -12,7 +11,6 @@ import { useRouter } from "next/navigation";
 import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { CountUpAnimation } from "@/components/ui/count-up-animation";
 import { TransactionDetailsModal } from "@/components/transaction/transaction-details-modal";
-import { QuickActionButton } from "./quick-action-button";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { StatsCard } from "./stats-card";
 import { SpendingPieChart } from "./spending-pie-chart";
@@ -58,7 +56,6 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
   const [viewingTransaction, setViewingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [navLoading, setNavLoading] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showInsightsDesktop, setShowInsightsDesktop] = useState(true);
   const [mobileInsightsOpen, setMobileInsightsOpen] = useState(false);
@@ -155,25 +152,9 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
           onComplete={() => setShowWelcome(false)}
         />
       )}
-      <div className="p-4 w-full mx-auto lg:h-[calc(100vh-2rem)]">
-        <header className="flex lg:hidden items-center justify-between border-b border-border/70 pb-4 mb-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Xin chào, {user.name || "Bạn"}!</h1>
-            <p className="text-muted-foreground text-sm">Theo dõi tài chính tháng này.</p>
-          </div>
-          <UserNav />
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:h-full">
-          <aside className="lg:col-span-3 lg:h-full lg:overflow-y-auto lg:pr-1 space-y-4">
-            <div className="hidden lg:flex items-center gap-3 pb-1">
-              <UserNav />
-              <div>
-                <h1 className="text-lg font-semibold">{user.name || "Bạn"}</h1>
-                <p className="text-xs text-muted-foreground">Command Center</p>
-              </div>
-            </div>
-
+      <div className="w-full lg:h-full">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:h-full">
+          <aside className="space-y-4 lg:col-span-3 lg:h-full lg:overflow-y-auto lg:pr-1">
             <div className="grid grid-cols-1 gap-3">
               <StatsCard title="Chi tiêu tháng này">
                 <div className="text-2xl font-semibold tabular-nums text-red-600 dark:text-red-400">
@@ -192,40 +173,10 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
 
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               <AddTransaction
                 categories={categories}
                 onTransactionAdded={handleTransactionAdded}
-              />
-              <QuickActionButton
-                icon={List}
-                label="Lịch sử"
-                onClick={() => {
-                  setNavLoading("history");
-                  router.push("/transactions");
-                }}
-                isLoading={navLoading === "history"}
-                disabled={navLoading !== null}
-              />
-              <QuickActionButton
-                icon={BarChart3}
-                label="Báo cáo"
-                onClick={() => {
-                  setNavLoading("reports");
-                  router.push("/reports");
-                }}
-                isLoading={navLoading === "reports"}
-                disabled={navLoading !== null}
-              />
-              <QuickActionButton
-                icon={Users}
-                label="Gia đình"
-                onClick={() => {
-                  setNavLoading("family");
-                  router.push("/family");
-                }}
-                isLoading={navLoading === "family"}
-                disabled={navLoading !== null}
               />
             </div>
           </aside>
@@ -360,6 +311,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
                     categories={categories}
                     scope="personal"
                     showFilters={showFilters}
+                    hideTrigger
                     hideDateFilter
                     onCategoryChange={(val) => updateFilters({ categoryId: val })}
                     onDateRangeChange={handleDateSelect}
@@ -461,7 +413,7 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
           onEdit={handleEditFromView}
           readOnly={scope === 'family' || (viewingTransaction ? !isSameMonth(new Date(viewingTransaction.date), new Date()) : false)}
         />
-      </div>{/* End of max-w-7xl */}
+      </div>
     </>
   );
 }

@@ -7,6 +7,7 @@ import { getFamilyMembers } from "@/actions/family";
 import { getCategoryStats } from "@/actions/analytics";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { getAppMonthRange } from "@/lib/app-time";
+import { WorkspaceLayout } from "@/components/layout/workspace-layout";
 
 export default async function DashboardPage({
   searchParams,
@@ -39,14 +40,20 @@ export default async function DashboardPage({
   ]);
 
   return (
-    <DashboardClient
-      user={session.user || {}}
-      categories={categories}
-      transactions={transactions}
-      stats={stats}
-      familyMembers={familyMembers}
-      budgetProgress={budgetProgress}
-      categoryStats={categoryStats}
-    />
+    <WorkspaceLayout
+      withPanel={false}
+      maxWidthClassName="max-w-[1400px]"
+      fullHeight
+    >
+      <DashboardClient
+        user={session.user || {}}
+        categories={categories}
+        transactions={transactions}
+        stats={stats}
+        familyMembers={familyMembers}
+        budgetProgress={budgetProgress}
+        categoryStats={categoryStats}
+      />
+    </WorkspaceLayout>
   );
 }

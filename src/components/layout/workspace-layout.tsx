@@ -1,12 +1,8 @@
 import type { ReactNode } from "react";
-import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
+import { WorkspaceTopBar } from "@/components/layout/workspace-topbar";
 
 interface WorkspaceLayoutProps {
-  title: string;
-  description?: string;
-  backHref?: string;
-  actions?: ReactNode;
   children: ReactNode;
   maxWidthClassName?: string;
   className?: string;
@@ -17,10 +13,6 @@ interface WorkspaceLayoutProps {
 }
 
 export function WorkspaceLayout({
-  title,
-  description,
-  backHref,
-  actions,
   children,
   maxWidthClassName = "max-w-6xl",
   className,
@@ -41,14 +33,18 @@ export function WorkspaceLayout({
         className={cn(
           "relative mx-auto flex flex-col gap-5",
           maxWidthClassName,
-          fullHeight && "h-[calc(100vh-2rem)]"
+          fullHeight && "min-h-[calc(100vh-2rem)]"
         )}
       >
-        <PageHeader title={title} description={description} backHref={backHref}>
-          {actions}
-        </PageHeader>
+        <WorkspaceTopBar />
 
-        <div className={cn("flex-1 min-h-0", contentClassName)}>
+        <div
+          className={cn(
+            "flex-1 min-h-0",
+            fullHeight && "lg:min-h-[calc(100vh-13.5rem)]",
+            contentClassName
+          )}
+        >
           {withPanel ? (
             <section
               className={cn(

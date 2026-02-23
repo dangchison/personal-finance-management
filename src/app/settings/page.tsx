@@ -7,7 +7,6 @@ import { getSystemCategories } from "@/actions/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BudgetList } from "@/components/budget/budget-list";
-import { UserNav } from "@/components/auth/user-nav";
 import { CategoryClient } from "@/components/admin/category-client";
 import { WorkspaceLayout } from "@/components/layout/workspace-layout";
 
@@ -35,9 +34,6 @@ export default async function SettingsPage({
 
   return (
     <WorkspaceLayout
-      title="Cài đặt"
-      description="Quản lý tài khoản và thiết lập hệ thống"
-      actions={<UserNav />}
       maxWidthClassName="max-w-5xl"
       contentInnerClassName="p-4 sm:p-5"
     >

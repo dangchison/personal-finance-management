@@ -46,8 +46,6 @@ export default async function ReportsPage({
 
   return (
     <WorkspaceLayout
-      title="Báo cáo & Phân tích"
-      description="Tổng quan tài chính của bạn"
       withPanel={false}
       maxWidthClassName="max-w-6xl"
     >
