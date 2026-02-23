@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { setMonth, setYear, startOfMonth, endOfMonth } from "date-fns";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { getAppMonthRangeFromYearMonth, getAppYearMonth } from "@/lib/app-time";
 
 interface MonthPickerProps {
     date?: Date;
@@ -33,20 +33,23 @@ export function MonthPicker({ date, onDateChange, className, align = "start" }: 
 
     // Initialize with provided date or current date
     const initialDate = date || new Date();
-    const [selectedMonth, setSelectedMonth] = React.useState(initialDate.getMonth());
-    const [selectedYear, setSelectedYear] = React.useState(initialDate.getFullYear());
+    const initialYearMonth = getAppYearMonth(initialDate);
+    const [selectedMonth, setSelectedMonth] = React.useState(initialYearMonth.monthIndex);
+    const [selectedYear, setSelectedYear] = React.useState(initialYearMonth.year);
 
     // Update local state when prop changes
     React.useEffect(() => {
         if (date) {
-            setSelectedMonth(date.getMonth());
-            setSelectedYear(date.getFullYear());
+            const yearMonth = getAppYearMonth(date);
+            setSelectedMonth(yearMonth.monthIndex);
+            setSelectedYear(yearMonth.year);
         }
     }, [date]);
 
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
+    const now = getAppYearMonth(new Date());
+    const currentYear = now.year;
+    const currentMonth = now.monthIndex;
+    const displayYearMonth = date ? getAppYearMonth(date) : null;
 
     const handleYearChange = (direction: 'prev' | 'next') => {
         if (direction === 'next' && selectedYear >= currentYear) return;
@@ -57,9 +60,7 @@ export function MonthPicker({ date, onDateChange, className, align = "start" }: 
         // Prevent future selection
         if (selectedYear === currentYear && monthIndex > currentMonth) return;
 
-        const newDate = setYear(setMonth(new Date(), monthIndex), selectedYear);
-        const from = startOfMonth(newDate);
-        const to = endOfMonth(newDate);
+        const { start: from, end: to } = getAppMonthRangeFromYearMonth(selectedYear, monthIndex);
 
         setSelectedMonth(monthIndex);
         onDateChange({ from, to });
@@ -78,10 +79,8 @@ export function MonthPicker({ date, onDateChange, className, align = "start" }: 
                     )}
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? (
-                        <span>
-                            {MONTHS_FULL[date.getMonth()]} {date.getFullYear()}
-                        </span>
+                    {displayYearMonth ? (
+                        <span>{MONTHS_FULL[displayYearMonth.monthIndex]} {displayYearMonth.year}</span>
                     ) : (
                         <span>Chọn tháng</span>
                     )}
@@ -114,7 +113,7 @@ export function MonthPicker({ date, onDateChange, className, align = "start" }: 
                 <div className="grid grid-cols-4 gap-2">
                     {MONTHS_SHORT.map((month, index) => {
                         const isFuture = selectedYear === currentYear && index > currentMonth;
-                        const isSelected = selectedMonth === index && selectedYear === (date?.getFullYear() || selectedYear);
+                        const isSelected = selectedMonth === index;
 
                         return (
                             <button

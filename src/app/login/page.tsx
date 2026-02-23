@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import Link from "next/link";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
-import Link from "next/link";
-import { Eye, EyeOff, Wallet } from "lucide-react";
+import { AuthShell } from "@/components/auth/auth-shell";
 
 function LoginForm() {
   const router = useRouter();
@@ -37,145 +38,107 @@ function LoginForm() {
     if (res?.error) {
       toast.error(res.error);
       setLoading(false);
-    } else {
-      toast.success("Đăng nhập thành công!");
-      router.push(callbackUrl);
+      return;
     }
+
+    toast.success("Đăng nhập thành công!");
+    router.replace(callbackUrl);
+    router.refresh();
   }
 
   return (
-    <div className="w-full max-w-md">
-      {/* Logo & Title */}
-      <div className="text-center mb-8 space-y-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/30 shadow-lg">
-          <Wallet className="w-8 h-8 text-white" />
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-2">Chào mừng trở lại</h1>
-          <p className="text-white/80 text-lg">Quản lý tài chính thông minh</p>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-2">
+        <Label htmlFor="username" className="text-slate-700">
+          Tên đăng nhập hoặc email
+        </Label>
+        <Input
+          id="username"
+          name="username"
+          type="text"
+          placeholder="admin hoặc john@example.com"
+          required
+          autoCapitalize="none"
+          disabled={loading}
+          className="h-11 border-slate-300 bg-slate-50/60 text-slate-900 placeholder:text-slate-400 focus:border-blue-500"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="password" className="text-slate-700">
+          Mật khẩu
+        </Label>
+        <div className="relative">
+          <Input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            required
+            disabled={loading}
+            className="h-11 border-slate-300 bg-slate-50/60 pr-11 text-slate-900 focus:border-blue-500"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-700"
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 
-      {/* Glassmorphism Card */}
-      <div className="relative backdrop-blur-xl bg-white/10 rounded-3xl p-8 shadow-2xl border border-white/20">
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-3xl pointer-events-none" />
-
-        <div className="relative z-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username Field */}
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-white/90 font-medium">
-                Tên đăng nhập hoặc Email
-              </Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="admin hoặc john@example.com"
-                disabled={loading}
-                required
-                autoCapitalize="none"
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus:border-white/40 transition-all duration-300 h-12 rounded-xl backdrop-blur-sm"
-              />
-            </div>
-
-            {/* Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/90 font-medium">
-                Mật khẩu
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  disabled={loading}
-                  required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 focus:border-white/40 transition-all duration-300 h-12 rounded-xl backdrop-blur-sm pr-12"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors duration-200"
-                  tabIndex={-1}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me */}
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked === true)}
-                className="w-5 h-5 rounded-lg border-2 border-white/30 bg-white/10 data-[state=checked]:bg-white data-[state=checked]:text-blue-600 data-[state=checked]:border-white hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/50 transition-all duration-200 cursor-pointer backdrop-blur-sm shadow-sm"
-              />
-              <Label htmlFor="remember" className="text-white/90 font-medium cursor-pointer select-none">
-                Ghi nhớ đăng nhập
-              </Label>
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              className="w-full h-12 bg-white text-cyan-600 hover:bg-white/90 font-semibold rounded-xl shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300 border-0"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Đang đăng nhập...
-                </span>
-              ) : (
-                "Đăng nhập"
-              )}
-            </Button>
-          </form>
-
-          {/* Footer Link */}
-          <div className="mt-6 text-center">
-            <p className="text-white/80">
-              Chưa có tài khoản?{" "}
-              <Link
-                href="/register"
-                className="font-semibold text-white hover:text-white/90 underline underline-offset-4 decoration-2 decoration-white/50 hover:decoration-white transition-all duration-200"
-              >
-                Đăng ký ngay
-              </Link>
-            </p>
-          </div>
-        </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="remember"
+          checked={rememberMe}
+          onCheckedChange={(checked) => setRememberMe(checked === true)}
+          disabled={loading}
+        />
+        <Label htmlFor="remember" className="cursor-pointer text-sm text-slate-600">
+          Ghi nhớ đăng nhập
+        </Label>
       </div>
+
+      <Button type="submit" disabled={loading} className="h-11 w-full bg-blue-600 text-white hover:bg-blue-500">
+        {loading ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Đang đăng nhập...
+          </span>
+        ) : (
+          "Đăng nhập"
+        )}
+      </Button>
+
+      <p className="text-center text-sm text-slate-600">
+        Chưa có tài khoản?{" "}
+        <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500">
+          Đăng ký ngay
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+function LoginFormFallback() {
+  return (
+    <div className="flex h-40 items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 via-teal-600 to-emerald-600 animate-gradient-xy" />
-
-      {/* Animated Shapes */}
-      <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl animate-pulse delay-700" />
-
-      <div className="relative z-10 w-full max-w-md">
-        <Suspense fallback={
-          <div className="flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-          </div>
-        }>
-          <LoginForm />
-        </Suspense>
-      </div>
-    </div>
+    <AuthShell
+      mode="login"
+      title="Chào mừng quay lại"
+      description="Đăng nhập để tiếp tục theo dõi giao dịch và ngân sách của bạn."
+    >
+      <Suspense fallback={<LoginFormFallback />}>
+        <LoginForm />
+      </Suspense>
+    </AuthShell>
   );
 }

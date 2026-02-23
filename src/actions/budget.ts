@@ -116,42 +116,107 @@ export async function getBudgetProgress(): Promise<BudgetProgress[]> {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    const progress = await Promise.all(budgets.map(async (budget) => {
-      const where: Prisma.TransactionWhereInput = {
-        categoryId: budget.categoryId,
-        type: "EXPENSE",
-        date: {
-          gte: startOfMonth,
-          lte: endOfMonth
+    const familyIds = Array.from(
+      new Set(
+        budgets
+          .map((b) => b.familyId)
+          .filter((id): id is string => !!id)
+      )
+    );
+
+    const familyUsers = familyIds.length > 0
+      ? await prisma.user.findMany({
+          where: { familyId: { in: familyIds } },
+          select: { id: true, familyId: true },
+        })
+      : [];
+
+    const familyUserMap = new Map<string, string[]>();
+    familyUsers.forEach((member) => {
+      if (!member.familyId) return;
+      const current = familyUserMap.get(member.familyId) || [];
+      current.push(member.id);
+      familyUserMap.set(member.familyId, current);
+    });
+
+    const personalCategoryIds = Array.from(
+      new Set(
+        budgets
+          .filter((b) => !b.familyId)
+          .map((b) => b.categoryId)
+      )
+    );
+
+    const personalSpentMap = new Map<string, number>();
+    if (personalCategoryIds.length > 0) {
+      const personalAggregates = await prisma.transaction.groupBy({
+        by: ["categoryId"],
+        where: {
+          categoryId: { in: personalCategoryIds },
+          type: "EXPENSE",
+          date: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+          deletedAt: null,
+          userId: user.id,
         },
-        deletedAt: null
-      };
-
-      if (budget.familyId) {
-        const familyUsers = await prisma.user.findMany({
-          where: { familyId: budget.familyId },
-          select: { id: true }
-        });
-        where.userId = { in: familyUsers.map(u => u.id) };
-      } else {
-        where.userId = user.id;
-      }
-
-      const aggregate = await prisma.transaction.aggregate({
-        where,
-        _sum: { amount: true }
+        _sum: { amount: true },
       });
 
-      const spent = aggregate._sum.amount?.toNumber() || 0;
+      personalAggregates.forEach((item) => {
+        personalSpentMap.set(item.categoryId, item._sum.amount?.toNumber() || 0);
+      });
+    }
+
+    const familyBudgetMap = new Map<string, Set<string>>();
+    budgets.forEach((budget) => {
+      if (!budget.familyId) return;
+      const categorySet = familyBudgetMap.get(budget.familyId) || new Set<string>();
+      categorySet.add(budget.categoryId);
+      familyBudgetMap.set(budget.familyId, categorySet);
+    });
+
+    const familySpentMap = new Map<string, number>();
+    for (const [familyId, categorySet] of familyBudgetMap.entries()) {
+      const memberIds = familyUserMap.get(familyId) || [];
+      const categoryIds = Array.from(categorySet);
+      if (memberIds.length === 0 || categoryIds.length === 0) continue;
+
+      const familyAggregates = await prisma.transaction.groupBy({
+        by: ["categoryId"],
+        where: {
+          categoryId: { in: categoryIds },
+          type: "EXPENSE",
+          date: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+          deletedAt: null,
+          userId: { in: memberIds },
+        },
+        _sum: { amount: true },
+      });
+
+      familyAggregates.forEach((item) => {
+        familySpentMap.set(`${familyId}:${item.categoryId}`, item._sum.amount?.toNumber() || 0);
+      });
+    }
+
+    const progress = budgets.map((budget) => {
+      const spent = budget.familyId
+        ? familySpentMap.get(`${budget.familyId}:${budget.categoryId}`) || 0
+        : personalSpentMap.get(budget.categoryId) || 0;
       const total = budget.amount;
+      const percentage = total > 0 ? Math.min(Math.round((spent / total) * 100), 100) : 0;
 
       return {
         ...budget,
         spent,
-        percentage: Math.min(Math.round((spent / total) * 100), 100),
-        isOverBudget: spent > total
+        percentage,
+        isOverBudget: spent > total,
       };
-    }));
+    });
 
     return progress.sort((a, b) => b.percentage - a.percentage);
   } catch (error) {

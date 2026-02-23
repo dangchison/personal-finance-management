@@ -17,6 +17,17 @@ async function requireAdmin() {
     return session.user;
 }
 
+async function findSystemCategoryById(id: string) {
+    return prisma.category.findFirst({
+        where: {
+            id,
+            isDefault: true,
+            familyId: null,
+        },
+        select: { id: true },
+    });
+}
+
 /**
  * Get all system categories (isDefault = true)
  */
@@ -49,9 +60,23 @@ export async function createSystemCategory(data: { name: string; type: Transacti
     }
 
     try {
+        const existing = await prisma.category.findFirst({
+            where: {
+                name: data.name.trim(),
+                type: data.type,
+                isDefault: true,
+                familyId: null,
+            },
+            select: { id: true },
+        });
+
+        if (existing) {
+            return { success: false, error: "Category already exists" };
+        }
+
         const category = await prisma.category.create({
             data: {
-                name: data.name,
+                name: data.name.trim(),
                 type: data.type,
                 isDefault: true,
                 familyId: null, // System categories don't belong to any family
@@ -73,10 +98,15 @@ export async function updateSystemCategory(id: string, data: { name: string; typ
     await requireAdmin();
 
     try {
+        const target = await findSystemCategoryById(id);
+        if (!target) {
+            return { success: false, error: "System category not found" };
+        }
+
         const category = await prisma.category.update({
-            where: { id },
+            where: { id: target.id },
             data: {
-                name: data.name,
+                name: data.name.trim(),
                 type: data.type,
             },
         });
@@ -96,9 +126,14 @@ export async function deleteSystemCategory(id: string) {
     await requireAdmin();
 
     try {
+        const target = await findSystemCategoryById(id);
+        if (!target) {
+            return { success: false, error: "System category not found" };
+        }
+
         // Check if transactions use this category
         const transactionCount = await prisma.transaction.count({
-            where: { categoryId: id },
+            where: { categoryId: target.id },
         });
 
         if (transactionCount > 0) {
@@ -109,7 +144,7 @@ export async function deleteSystemCategory(id: string) {
         }
 
         await prisma.category.delete({
-            where: { id },
+            where: { id: target.id },
         });
 
         revalidatePath("/settings");

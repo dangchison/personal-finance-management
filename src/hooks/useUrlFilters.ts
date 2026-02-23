@@ -3,6 +3,7 @@
 import { useCallback, useTransition, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DateRange } from "react-day-picker";
+import { formatAppDateParam, parseDateParam } from "@/lib/app-time";
 
 /**
  * Custom hook for managing URL-based filter state
@@ -48,8 +49,8 @@ export function useUrlFilters(basePath: string) {
         if (!from && !to) return undefined;
 
         return {
-            from: from ? new Date(from) : undefined,
-            to: to ? new Date(to) : undefined,
+            from: from ? parseDateParam(from) : undefined,
+            to: to ? parseDateParam(to) : undefined,
         } as DateRange;
     }, [searchParams]);
 
@@ -62,8 +63,8 @@ export function useUrlFilters(basePath: string) {
             updateFilters({ from: null, to: null });
         } else {
             updateFilters({
-                from: range.from ? range.from.toISOString() : null,
-                to: range.to ? range.to.toISOString() : null,
+                from: range.from ? formatAppDateParam(range.from) : null,
+                to: range.to ? formatAppDateParam(range.to) : null,
             });
         }
     }, [updateFilters]);

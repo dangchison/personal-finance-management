@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.passwordHash) {
-          throw new Error("User not found");
+          throw new Error("Invalid credentials");
         }
 
         const isPasswordCorrect = await bcrypt.compare(
@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordCorrect) {
-          throw new Error("Invalid password");
+          throw new Error("Invalid credentials");
         }
 
         return {

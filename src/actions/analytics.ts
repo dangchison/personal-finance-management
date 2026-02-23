@@ -2,7 +2,17 @@
 
 import prisma from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth-helpers";
-import { eachDayOfInterval, format } from "date-fns";
+import { getScopeUserIds } from "@/lib/scope-users";
+import { buildSixMonthBuckets, toYearMonthKey } from "@/lib/analytics-time";
+import {
+  createAppDate,
+  formatAppDateParam,
+  getAppDateParts,
+  getAppMonthRange,
+  toAppEndOfDay,
+  toAppStartOfDay,
+} from "@/lib/app-time";
+import { eachDayOfInterval } from "date-fns";
 import { Prisma } from "@prisma/client";
 
 export async function getDailyStats(
@@ -12,43 +22,30 @@ export async function getDailyStats(
 ) {
   try {
     const user = await getAuthenticatedUser();
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { familyId: true }
-    });
+    const userIds = await getScopeUserIds(user.id, scope);
 
     const now = new Date();
-    // Default to last 30 days
-    const start = startDate || new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
-    const end = endDate || now;
-    end.setHours(23, 59, 59, 999);
+    const end = toAppEndOfDay(endDate || now);
+    const start = toAppStartOfDay(
+      startDate || new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000)
+    );
 
     const where: Prisma.TransactionWhereInput = {
       date: {
         gte: start,
-        lte: end
+        lte: end,
       },
-      deletedAt: null
+      deletedAt: null,
+      userId: { in: userIds },
     };
-
-    if (scope === "family" && dbUser?.familyId) {
-      const familyUsers = await prisma.user.findMany({
-        where: { familyId: dbUser.familyId },
-        select: { id: true }
-      });
-      where.userId = { in: familyUsers.map(u => u.id) };
-    } else {
-      where.userId = user.id;
-    }
 
     const transactions = await prisma.transaction.findMany({
       where,
       select: {
         amount: true,
         type: true,
-        date: true
-      }
+        date: true,
+      },
     });
 
     // Aggregate by day
@@ -56,12 +53,12 @@ export async function getDailyStats(
 
     // Initialize all days
     const days = eachDayOfInterval({ start, end });
-    days.forEach(day => {
-      statsMap.set(format(day, 'yyyy-MM-dd'), { income: 0, expense: 0 });
+    days.forEach((day) => {
+      statsMap.set(formatAppDateParam(day), { income: 0, expense: 0 });
     });
 
-    transactions.forEach(t => {
-      const key = format(t.date, 'yyyy-MM-dd');
+    transactions.forEach((t) => {
+      const key = formatAppDateParam(t.date);
       const current = statsMap.get(key) || { income: 0, expense: 0 };
       if (t.type === "INCOME") {
         current.income += t.amount.toNumber();
@@ -73,9 +70,8 @@ export async function getDailyStats(
 
     return Array.from(statsMap.entries()).map(([date, values]) => ({
       date,
-      ...values
+      ...values,
     }));
-
   } catch (error) {
     console.error("Failed to fetch daily stats:", error);
     return [];
@@ -89,57 +85,44 @@ export async function getCategoryStats(
 ) {
   try {
     const user = await getAuthenticatedUser();
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { familyId: true }
-    });
+    const userIds = await getScopeUserIds(user.id, scope);
 
-    const now = new Date();
-    const start = startDate || new Date(now.getFullYear(), now.getMonth(), 1); // Default current month
-    const end = endDate || now;
+    const defaultMonth = getAppMonthRange();
+    const start = startDate ? toAppStartOfDay(startDate) : defaultMonth.start;
+    const end = endDate ? toAppEndOfDay(endDate) : defaultMonth.end;
 
     const where: Prisma.TransactionWhereInput = {
       date: {
         gte: start,
-        lte: end
+        lte: end,
       },
       type: "EXPENSE", // Focus on expense
-      deletedAt: null
+      deletedAt: null,
+      userId: { in: userIds },
     };
 
-    if (scope === "family" && dbUser?.familyId) {
-      const familyUsers = await prisma.user.findMany({
-        where: { familyId: dbUser.familyId },
-        select: { id: true }
-      });
-      where.userId = { in: familyUsers.map(u => u.id) };
-    } else {
-      where.userId = user.id;
-    }
-
     const aggregated = await prisma.transaction.groupBy({
-      by: ['categoryId'],
+      by: ["categoryId"],
       where,
       _sum: {
-        amount: true
-      }
+        amount: true,
+      },
     });
 
     // Need category names
-    const categoryIds = aggregated.map(a => a.categoryId);
+    const categoryIds = aggregated.map((a) => a.categoryId);
     const categories = await prisma.category.findMany({
       where: { id: { in: categoryIds } },
-      select: { id: true, name: true }
+      select: { id: true, name: true },
     });
 
-    return aggregated.map(a => {
-      const cat = categories.find(c => c.id === a.categoryId);
-      return {
-        name: cat?.name || "Unknown",
-        value: a._sum.amount?.toNumber() || 0
-      };
-    }).sort((a, b) => b.value - a.value);
-
+    const categoryMap = new Map(categories.map((c) => [c.id, c.name]));
+    return aggregated
+      .map((a) => ({
+        name: categoryMap.get(a.categoryId) || "Unknown",
+        value: a._sum.amount?.toNumber() || 0,
+      }))
+      .sort((a, b) => b.value - a.value);
   } catch (error) {
     console.error("Failed to fetch category stats:", error);
     return [];
@@ -151,44 +134,27 @@ export async function getYearlyComparison(
 ) {
   try {
     const user = await getAuthenticatedUser();
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { familyId: true }
-    });
+    const userIds = await getScopeUserIds(user.id, scope);
 
-    const now = new Date();
-    const currentYear = now.getFullYear();
+    const nowParts = getAppDateParts(new Date());
+    const currentYear = nowParts.year;
     const lastYear = currentYear - 1;
-
-    // Define filter based on scope
-    const where: Prisma.TransactionWhereInput = {
-      type: "EXPENSE",
-      deletedAt: null
-    };
-
-    if (scope === "family" && dbUser?.familyId) {
-      const familyUsers = await prisma.user.findMany({
-        where: { familyId: dbUser.familyId },
-        select: { id: true }
-      });
-      where.userId = { in: familyUsers.map(u => u.id) };
-    } else {
-      where.userId = user.id;
-    }
 
     // Fetch transactions for both years
     const transactions = await prisma.transaction.findMany({
       where: {
-        ...where,
+        type: "EXPENSE",
+        deletedAt: null,
+        userId: { in: userIds },
         date: {
-          gte: new Date(lastYear, 0, 1), // Jan 1st last year
-          lte: new Date(currentYear, 11, 31, 23, 59, 59) // Dec 31st current year
-        }
+          gte: createAppDate(lastYear, 1, 1, 0, 0, 0, 0),
+          lte: createAppDate(currentYear, 12, 31, 23, 59, 59, 999),
+        },
       },
       select: {
         date: true,
-        amount: true
-      }
+        amount: true,
+      },
     });
 
     // Initialize result array [0..11]
@@ -199,20 +165,19 @@ export async function getYearlyComparison(
       lastYear: 0,
     }));
 
-    transactions.forEach(t => {
-      const tDate = new Date(t.date);
-      const year = tDate.getFullYear();
-      const monthIndex = tDate.getMonth(); // 0-11
+    transactions.forEach((t) => {
+      const parts = getAppDateParts(t.date);
+      const year = parts.year;
+      const monthIndex = parts.month - 1; // 0-11
 
       if (year === currentYear) {
-        monthlyData[monthIndex].currentYear += Number(t.amount);
+        monthlyData[monthIndex].currentYear += t.amount.toNumber();
       } else if (year === lastYear) {
-        monthlyData[monthIndex].lastYear += Number(t.amount);
+        monthlyData[monthIndex].lastYear += t.amount.toNumber();
       }
     });
 
     return monthlyData;
-
   } catch (error) {
     console.error("Failed to fetch yearly stats:", error);
     return [];
@@ -224,70 +189,41 @@ export async function getSixMonthTrend(
 ) {
   try {
     const user = await getAuthenticatedUser();
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { familyId: true }
-    });
+    const userIds = await getScopeUserIds(user.id, scope);
 
-    const now = new Date();
-    // End date: Last moment of today/current month
-    const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const monthlyData = buildSixMonthBuckets(new Date());
 
-    // Start date: 1st day of month, 5 months ago
-    // e.g. If now is Feb 2026, we want: Sep, Oct, Nov, Dec, Jan, Feb
-    const startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-
-    const where: Prisma.TransactionWhereInput = {
-      type: "EXPENSE",
-      deletedAt: null,
-      date: {
-        gte: startDate,
-        lte: endDate
-      }
-    };
-
-    if (scope === "family" && dbUser?.familyId) {
-      const familyUsers = await prisma.user.findMany({
-        where: { familyId: dbUser.familyId },
-        select: { id: true }
-      });
-      where.userId = { in: familyUsers.map(u => u.id) };
-    } else {
-      where.userId = user.id;
-    }
+    const oldest = monthlyData[0];
+    const [oldestYear, oldestMonth] = oldest.fullDate.split("-").map(Number);
+    const startDate = createAppDate(oldestYear, oldestMonth, 1, 0, 0, 0, 0);
+    const endDate = toAppEndOfDay(new Date());
 
     const transactions = await prisma.transaction.findMany({
-      where,
+      where: {
+        type: "EXPENSE",
+        deletedAt: null,
+        userId: { in: userIds },
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
       select: {
         date: true,
-        amount: true
-      }
+        amount: true,
+      },
     });
 
-    // Generate buckets for last 6 months
-    const monthlyData: { month: string; fullDate: string; value: number }[] = [];
-
-    // Create skeletal structure
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
-      monthlyData.push({
-        month: format(d, 'MM/yyyy'),
-        fullDate: format(d, 'yyyy-MM'),
-        value: 0
-      });
-    }
-
-    // Fill data
-    transactions.forEach(t => {
-      const key = format(t.date, 'MM/yyyy');
-      const bucket = monthlyData.find(m => m.month === key);
-      if (bucket) {
-        bucket.value += Number(t.amount);
-      }
+    const bucketIndexByKey = new Map(monthlyData.map((item, index) => [item.fullDate, index]));
+    transactions.forEach((t) => {
+      const parts = getAppDateParts(t.date);
+      const key = toYearMonthKey(parts.year, parts.month);
+      const index = bucketIndexByKey.get(key);
+      if (index === undefined) return;
+      monthlyData[index].value += t.amount.toNumber();
     });
 
     return monthlyData;
-
   } catch (error) {
     console.error("Failed to fetch 6-month trend:", error);
     return [];
@@ -301,46 +237,32 @@ export async function getMonthlySummary(
 ) {
   try {
     const user = await getAuthenticatedUser();
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { familyId: true }
-    });
-
-    const now = new Date();
-    const start = startDate || new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = endDate || now;
+    const userIds = await getScopeUserIds(user.id, scope);
+    const defaultMonth = getAppMonthRange();
+    const start = startDate ? toAppStartOfDay(startDate) : defaultMonth.start;
+    const end = endDate ? toAppEndOfDay(endDate) : defaultMonth.end;
 
     const where: Prisma.TransactionWhereInput = {
       date: {
         gte: start,
-        lte: end
+        lte: end,
       },
-      deletedAt: null
+      deletedAt: null,
+      userId: { in: userIds },
     };
 
-    if (scope === "family" && dbUser?.familyId) {
-      const familyUsers = await prisma.user.findMany({
-        where: { familyId: dbUser.familyId },
-        select: { id: true }
-      });
-      where.userId = { in: familyUsers.map(u => u.id) };
-    } else {
-      where.userId = user.id;
-    }
-
     const aggregated = await prisma.transaction.groupBy({
-      by: ['type'],
+      by: ["type"],
       where,
       _sum: {
-        amount: true
-      }
+        amount: true,
+      },
     });
 
-    const income = aggregated.find(a => a.type === "INCOME")?._sum.amount?.toNumber() || 0;
-    const expense = aggregated.find(a => a.type === "EXPENSE")?._sum.amount?.toNumber() || 0;
+    const income = aggregated.find((a) => a.type === "INCOME")?._sum.amount?.toNumber() || 0;
+    const expense = aggregated.find((a) => a.type === "EXPENSE")?._sum.amount?.toNumber() || 0;
 
     return { income, expense };
-
   } catch (error) {
     console.error("Failed to fetch monthly summary:", error);
     return { income: 0, expense: 0 };

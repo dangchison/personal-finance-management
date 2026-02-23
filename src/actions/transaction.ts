@@ -4,6 +4,13 @@ import prisma from "@/lib/prisma";
 import { getAuthenticatedUser, getAuthenticatedUserOrNull } from "@/lib/auth-helpers";
 import { USER_SELECT_BASIC } from "@/lib/prisma-selects";
 import { revalidateTransactionPages } from "@/lib/revalidation";
+import {
+  getAppMonthRange,
+  getPreviousAppMonthRange,
+  toAppEndOfDay,
+  toAppStartOfDay,
+} from "@/lib/app-time";
+import { getScopeUserIds, isUserInSameFamily } from "@/lib/scope-users";
 import { Category, Transaction, PaymentMethod, Prisma } from "@prisma/client";
 
 export type TransactionWithCategory = Omit<Transaction, "amount"> & {
@@ -15,6 +22,33 @@ export type TransactionWithCategory = Omit<Transaction, "amount"> & {
     image: string | null;
   } | null;
 };
+
+async function resolveAccessibleCategory(
+  userId: string,
+  categoryId: string,
+  expectedType?: "INCOME" | "EXPENSE"
+) {
+  const userRecord = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { familyId: true },
+  });
+
+  if (!userRecord) return null;
+
+  const visibilityConditions: Prisma.CategoryWhereInput[] = [{ isDefault: true }];
+  if (userRecord.familyId) {
+    visibilityConditions.push({ familyId: userRecord.familyId });
+  }
+
+  return prisma.category.findFirst({
+    where: {
+      id: categoryId,
+      ...(expectedType ? { type: expectedType } : {}),
+      OR: visibilityConditions,
+    },
+    select: { id: true },
+  });
+}
 
 
 export async function createTransaction(data: {
@@ -28,6 +62,11 @@ export async function createTransaction(data: {
 }) {
   try {
     const user = await getAuthenticatedUser();
+    const category = await resolveAccessibleCategory(user.id, data.categoryId, data.type);
+
+    if (!category) {
+      return { error: "Invalid category" };
+    }
 
     const transaction = await prisma.transaction.create({
       data: {
@@ -38,7 +77,7 @@ export async function createTransaction(data: {
         date: data.date,
         userId: user.id,
         paymentMethod: data.paymentMethod || "CASH",
-        transferCode: data.transferCode,
+        transferCode: data.paymentMethod === "TRANSFER" ? data.transferCode : null,
       },
     });
 
@@ -66,21 +105,21 @@ export async function getCategories() {
     select: { familyId: true }
   });
 
+  const conditions: Prisma.CategoryWhereInput[] = [{ isDefault: true }];
+  if (userRecord?.familyId) {
+    conditions.push({ familyId: userRecord.familyId });
+  }
+
   const categories = await prisma.category.findMany({
-    where: {
-      OR: [
-        { isDefault: true },
-        { familyId: userRecord?.familyId || "hmmm-invalid-uuid" }
-      ]
-    },
-    orderBy: { name: 'asc' }
+    where: { OR: conditions },
+    orderBy: { name: "asc" },
   });
 
   return categories;
 }
 
 export async function getTransactions(
-  limit = 20,
+  limit: number | undefined,
   offset = 0,
   filters: {
     scope?: "personal" | "family";
@@ -100,11 +139,9 @@ export async function getTransactions(
     // Date Filter
     if (filters.startDate || filters.endDate) {
       where.date = {};
-      if (filters.startDate) where.date.gte = filters.startDate;
+      if (filters.startDate) where.date.gte = toAppStartOfDay(filters.startDate);
       if (filters.endDate) {
-        const endOfDay = new Date(filters.endDate);
-        endOfDay.setHours(23, 59, 59, 999);
-        where.date.lte = endOfDay;
+        where.date.lte = toAppEndOfDay(filters.endDate);
       }
     }
 
@@ -115,37 +152,16 @@ export async function getTransactions(
 
     // Scope & Member Filter
     if (filters.scope === "family") {
-      // Get user's family
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { familyId: true }
-      });
-
-      if (user?.familyId) {
-        if (filters.memberId && filters.memberId !== "all") {
-          // specific member - verify they are in the family
-          const member = await prisma.user.findFirst({
-            where: { id: filters.memberId, familyId: user.familyId }
-          });
-          if (member) {
-            where.userId = filters.memberId;
-          } else {
-            // Member not found or not in family -> return empty or fallback? 
-            // Let's return empty for security
-            return [];
-          }
-        } else {
-          // All family members
-          const familyUsers = await prisma.user.findMany({
-            where: { familyId: user.familyId },
-            select: { id: true }
-          });
-          const familyUserIds = familyUsers.map(u => u.id);
-          where.userId = { in: familyUserIds };
+      if (filters.memberId && filters.memberId !== "all") {
+        const isSameFamily = await isUserInSameFamily(userId, filters.memberId);
+        if (!isSameFamily) {
+          // Member not found or not in family -> return empty for security
+          return [];
         }
+        where.userId = filters.memberId;
       } else {
-        // Fallback to personal if no family
-        where.userId = userId;
+        const familyUserIds = await getScopeUserIds(userId, "family");
+        where.userId = { in: familyUserIds };
       }
     } else {
       // Personal scope
@@ -185,25 +201,8 @@ export async function getMonthlyStats() {
   try {
     const user = await getAuthenticatedUser();
 
-    const now = new Date();
-
-    // Adjust for UTC+7 (Vietnam Time) to capture transactions made in local time
-    const TIMEZONE_OFFSET_HOURS = 7;
-    const offsetMs = TIMEZONE_OFFSET_HOURS * 60 * 60 * 1000;
-
-    // Calculate "Vietnam Now" first to identify correct Month/Year
-    const nowVn = new Date(now.getTime() + offsetMs);
-    const vnYear = nowVn.getUTCFullYear();
-    const vnMonth = nowVn.getUTCMonth();
-
-    // Current Month (VN -> UTC)
-    // Feb 1 00:00 VN corresponds to Date.UTC(2026, 1, 1) - 7h
-    const start = new Date(Date.UTC(vnYear, vnMonth, 1) - offsetMs);
-    const end = new Date(Date.UTC(vnYear, vnMonth + 1, 0, 23, 59, 59, 999) - offsetMs);
-
-    // Previous Month (VN -> UTC)
-    const startPrev = new Date(Date.UTC(vnYear, vnMonth - 1, 1) - offsetMs);
-    const endPrev = new Date(Date.UTC(vnYear, vnMonth, 0, 23, 59, 59, 999) - offsetMs);
+    const { start, end } = getAppMonthRange();
+    const { start: startPrev, end: endPrev } = getPreviousAppMonthRange();
 
     // We need to group by month to separate them, OR we can run two queries.
     // groupBy doesn't support grouping by date trunc easily in Prisma without raw query.
@@ -298,6 +297,11 @@ export async function updateTransaction(id: string, data: {
       return { error: "Not found or unauthorized" };
     }
 
+    const category = await resolveAccessibleCategory(user.id, data.categoryId, data.type);
+    if (!category) {
+      return { error: "Invalid category" };
+    }
+
     const transaction = await prisma.transaction.update({
       where: { id },
       data: {
@@ -307,7 +311,7 @@ export async function updateTransaction(id: string, data: {
         category: { connect: { id: data.categoryId } },
         date: data.date,
         paymentMethod: data.paymentMethod,
-        transferCode: data.transferCode,
+        transferCode: data.paymentMethod === "TRANSFER" ? data.transferCode : null,
       },
     });
 

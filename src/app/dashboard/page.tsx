@@ -6,6 +6,7 @@ import { getBudgetProgress } from "@/actions/budget";
 import { getFamilyMembers } from "@/actions/family";
 import { getCategoryStats } from "@/actions/analytics";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { getAppMonthRange } from "@/lib/app-time";
 
 export default async function DashboardPage({
   searchParams,
@@ -24,26 +25,13 @@ export default async function DashboardPage({
   const categoryId = resolvedSearchParams.categoryId as string;
   const memberId = resolvedSearchParams.memberId as string;
 
-  // Dashboard only shows current month data (Aligned with Vietnam Time UTC+7)
-  const TIMEZONE_OFFSET_HOURS = 7;
-  const offsetMs = TIMEZONE_OFFSET_HOURS * 60 * 60 * 1000;
-
-  const now = new Date();
-  const nowVn = new Date(now.getTime() + offsetMs);
-  const vnYear = nowVn.getUTCFullYear();
-  const vnMonth = nowVn.getUTCMonth();
-
-  // Start Of Month (VN): Year-Month-01 00:00:00 VN -> UTC
-  const startDate = new Date(Date.UTC(vnYear, vnMonth, 1) - offsetMs);
-
-  // End Of Month (VN): Year-Month-Last 23:59:59.999 VN -> UTC
-  const endDate = new Date(Date.UTC(vnYear, vnMonth + 1, 0, 23, 59, 59, 999) - offsetMs);
+  const { start: startDate, end: endDate } = getAppMonthRange();
 
   // Ignore searchParams.from/to for dashboard to enforce current month view
 
   const [categories, transactions, stats, familyMembers, budgetProgress, categoryStats] = await Promise.all([
     getCategories(),
-    getTransactions(50, 0, { scope, categoryId, memberId, startDate, endDate }),
+    getTransactions(undefined, 0, { scope, categoryId, memberId, startDate, endDate }),
     getMonthlyStats(),
     getFamilyMembers(),
     getBudgetProgress(),

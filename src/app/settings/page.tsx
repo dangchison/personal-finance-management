@@ -4,12 +4,12 @@ import { redirect } from "next/navigation";
 import { getCategories } from "@/actions/transaction";
 import { getBudgetProgress } from "@/actions/budget";
 import { getSystemCategories } from "@/actions/admin";
-import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BudgetList } from "@/components/budget/budget-list";
 import { UserNav } from "@/components/auth/user-nav";
 import { CategoryClient } from "@/components/admin/category-client";
+import { WorkspaceLayout } from "@/components/layout/workspace-layout";
 
 export default async function SettingsPage({
   searchParams,
@@ -34,14 +34,13 @@ export default async function SettingsPage({
   const defaultTab = (resolvedSearchParams.tab as string) || "budget";
 
   return (
-    <div className="p-4 space-y-6 max-w-4xl mx-auto">
-      <PageHeader
-        title="Cài đặt"
-        description="Quản lý tài khoản và thiết lập hệ thống"
-      >
-        <UserNav />
-      </PageHeader>
-
+    <WorkspaceLayout
+      title="Cài đặt"
+      description="Quản lý tài khoản và thiết lập hệ thống"
+      actions={<UserNav />}
+      maxWidthClassName="max-w-5xl"
+      contentInnerClassName="p-4 sm:p-5"
+    >
       <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">Thông tin chung</TabsTrigger>
@@ -99,6 +98,6 @@ export default async function SettingsPage({
           </TabsContent>
         )}
       </Tabs>
-    </div>
+    </WorkspaceLayout>
   );
 }

@@ -8,7 +8,6 @@ import { CalendarIcon, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 import { formatNumber } from "@/lib/format-currency";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,7 +59,6 @@ interface TransactionFormProps {
 export function TransactionForm({ categories, initialData, onSuccess }: TransactionFormProps) {
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -123,7 +121,6 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
         form.reset();
       }
       onSuccess();
-      router.refresh();
     }
     setLoading(false);
   }

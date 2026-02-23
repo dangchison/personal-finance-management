@@ -16,7 +16,7 @@ export function TransactionItem({ transaction, onView, readOnly = false }: Trans
   return (
     <div className="px-1 py-1">
       <div
-        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors shadow-sm bg-card h-full group cursor-pointer"
+        className="flex items-center justify-between p-3 border border-border/80 rounded-xl hover:bg-muted/30 transition-colors bg-card h-full group cursor-pointer"
         onClick={() => onView?.(transaction)}
       >
         <div className="flex items-center gap-3 sm:gap-4 overflow-hidden flex-1">
@@ -58,9 +58,9 @@ export function TransactionItem({ transaction, onView, readOnly = false }: Trans
         <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-2">
           <div
             className={cn(
-              "font-bold text-sm sm:text-base whitespace-nowrap text-right",
+              "font-semibold tabular-nums text-sm sm:text-base whitespace-nowrap text-right",
               transaction.type === "INCOME"
-                ? "text-green-600 dark:text-green-400"
+                ? "text-emerald-600 dark:text-emerald-400"
                 : "text-red-600 dark:text-red-400"
             )}
           >

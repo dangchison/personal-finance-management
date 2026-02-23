@@ -7,8 +7,7 @@ interface QuickActionButtonProps {
     icon: LucideIcon;
     label: string;
     onClick: () => void;
-    gradient: string; // Tailwind gradient classes
-    shadowColor: string; // Tailwind shadow color classes
+    tone?: "neutral" | "primary";
     isLoading?: boolean;
     disabled?: boolean;
     className?: string;
@@ -18,34 +17,33 @@ export function QuickActionButton({
     icon: Icon,
     label,
     onClick,
-    gradient,
-    shadowColor,
+    tone = "neutral",
     isLoading = false,
     disabled = false,
     className
 }: QuickActionButtonProps) {
+    const toneClasses = tone === "primary"
+        ? "bg-primary text-primary-foreground border-primary/90 hover:bg-primary/90"
+        : "bg-card text-foreground border-border/80 hover:bg-muted/40";
+
     return (
         <button
             onClick={onClick}
             disabled={disabled || isLoading}
             className={cn(
-                "relative h-20 rounded-lg text-white transition-all duration-300",
-                "flex flex-col items-center justify-center gap-2 overflow-hidden group cursor-pointer",
-                "hover:scale-105 active:scale-95",
-                "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
-                gradient,
-                shadowColor,
-                "hover:shadow-xl",
+                "relative h-20 rounded-xl border transition-colors duration-200",
+                "flex flex-col items-center justify-center gap-2 group cursor-pointer",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                toneClasses,
                 className
             )}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             {isLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin relative z-10" />
+                <Loader2 className="w-5 h-5 animate-spin relative z-10" />
             ) : (
-                <Icon className="w-6 h-6 relative z-10 group-hover:rotate-3 transition-transform duration-300" />
+                <Icon className="w-5 h-5 relative z-10" />
             )}
-            <span className="text-sm font-medium relative z-10">{label}</span>
+            <span className="text-xs font-medium relative z-10">{label}</span>
         </button>
     );
 }

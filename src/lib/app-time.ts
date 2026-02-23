@@ -1,0 +1,96 @@
+const APP_TIMEZONE_OFFSET_HOURS = 7;
+const APP_TIMEZONE_OFFSET_MS = APP_TIMEZONE_OFFSET_HOURS * 60 * 60 * 1000;
+
+function shiftToAppTimezone(date: Date): Date {
+  return new Date(date.getTime() + APP_TIMEZONE_OFFSET_MS);
+}
+
+function pad2(value: number): string {
+  return value.toString().padStart(2, "0");
+}
+
+export function createAppDate(
+  year: number,
+  month: number,
+  day: number,
+  hour = 0,
+  minute = 0,
+  second = 0,
+  millisecond = 0
+): Date {
+  return new Date(
+    Date.UTC(year, month - 1, day, hour, minute, second, millisecond) - APP_TIMEZONE_OFFSET_MS
+  );
+}
+
+export function getAppDateParts(date: Date): { year: number; month: number; day: number } {
+  const shifted = shiftToAppTimezone(date);
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+  };
+}
+
+export function getAppYearMonth(date: Date): { year: number; monthIndex: number } {
+  const parts = getAppDateParts(date);
+  return { year: parts.year, monthIndex: parts.month - 1 };
+}
+
+export function toAppStartOfDay(date: Date): Date {
+  const { year, month, day } = getAppDateParts(date);
+  return createAppDate(year, month, day, 0, 0, 0, 0);
+}
+
+export function toAppEndOfDay(date: Date): Date {
+  const { year, month, day } = getAppDateParts(date);
+  return createAppDate(year, month, day, 23, 59, 59, 999);
+}
+
+export function getAppMonthRange(referenceDate: Date = new Date()): { start: Date; end: Date } {
+  const { year, month } = getAppDateParts(referenceDate);
+  return {
+    start: createAppDate(year, month, 1, 0, 0, 0, 0),
+    end: createAppDate(year, month + 1, 0, 23, 59, 59, 999),
+  };
+}
+
+export function getPreviousAppMonthRange(
+  referenceDate: Date = new Date()
+): { start: Date; end: Date } {
+  const currentMonthStart = getAppMonthRange(referenceDate).start;
+  return getAppMonthRange(new Date(currentMonthStart.getTime() - 1));
+}
+
+export function getAppMonthRangeFromYearMonth(
+  year: number,
+  monthIndex: number
+): { start: Date; end: Date } {
+  const month = monthIndex + 1;
+  return {
+    start: createAppDate(year, month, 1, 0, 0, 0, 0),
+    end: createAppDate(year, month + 1, 0, 23, 59, 59, 999),
+  };
+}
+
+export function formatAppDateParam(date: Date): string {
+  const { year, month, day } = getAppDateParts(date);
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+export function parseDateParam(value: string | undefined): Date | undefined {
+  if (!value) return undefined;
+
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const match = value.match(dateOnly);
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    return createAppDate(year, month, day, 12, 0, 0, 0);
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  return parsed;
+}

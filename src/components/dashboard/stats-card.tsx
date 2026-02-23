@@ -6,29 +6,29 @@ import { ReactNode } from "react";
 interface StatsCardProps {
     title: string;
     children: ReactNode;
-    shadowColor?: string;
+    className?: string;
     headerAction?: ReactNode;
 }
 
 export function StatsCard({
     title,
     children,
-    shadowColor = "shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/35",
+    className,
     headerAction
 }: StatsCardProps) {
     return (
-        <Card className={`relative overflow-hidden bg-card ${shadowColor} transition-all duration-300`}>
-            <CardHeader className="pb-2">
+        <Card className={`relative overflow-hidden bg-card border border-border/80 shadow-sm ${className || ""}`}>
+            <CardHeader className="pb-2 space-y-0">
                 {headerAction ? (
                     <div className="flex items-start justify-between">
-                        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                        <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</CardTitle>
                         {headerAction}
                     </div>
                 ) : (
-                    <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                    <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</CardTitle>
                 )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
                 {children}
             </CardContent>
         </Card>

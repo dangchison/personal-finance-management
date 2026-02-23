@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 import {
   Dialog,
@@ -22,6 +22,7 @@ import { Category, Transaction } from "@prisma/client";
 import { TransactionWithCategory } from "@/actions/transaction";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { TransactionForm } from "./transaction-form";
+import { useRouter } from "next/navigation";
 
 interface AddTransactionProps {
   categories: Category[];
@@ -33,6 +34,8 @@ interface AddTransactionProps {
 
 export function AddTransaction({ categories, initialData, open: controlledOpen, onOpenChange: setControlledOpen, onTransactionAdded }: AddTransactionProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const [, startTransition] = useTransition();
+  const router = useRouter();
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const isControlled = controlledOpen !== undefined;
@@ -45,18 +48,24 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
 
   const onSuccess = () => {
     setOpen(false);
-    onTransactionAdded?.();
+    if (onTransactionAdded) {
+      onTransactionAdded();
+      return;
+    }
+
+    startTransition(() => {
+      router.refresh();
+    });
   };
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
         {!isControlled && (
           <DialogTrigger asChild>
-            <button className="relative h-20 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-2 overflow-hidden group cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <Plus className="h-6 w-6 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-              <span className="text-sm font-medium relative z-10">Thêm mới</span>
+            <button className="relative h-20 rounded-xl border border-blue-400 bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-400 flex flex-col items-center justify-center gap-2 cursor-pointer">
+              <Plus className="h-5 w-5 relative z-10" />
+              <span className="text-xs font-medium relative z-10">Thêm mới</span>
             </button>
           </DialogTrigger>
         )}
@@ -81,10 +90,9 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
     <Sheet open={open} onOpenChange={handleOpenChange}>
       {!isControlled && (
         <SheetTrigger asChild>
-          <button className="relative h-20 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 text-white shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col items-center justify-center gap-2 overflow-hidden group cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <Plus className="h-6 w-6 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-            <span className="text-sm font-medium relative z-10">Thêm mới</span>
+          <button className="relative h-20 rounded-xl border border-blue-400 bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-400 flex flex-col items-center justify-center gap-2 cursor-pointer">
+            <Plus className="h-5 w-5 relative z-10" />
+            <span className="text-xs font-medium relative z-10">Thêm mới</span>
           </button>
         </SheetTrigger>
       )}

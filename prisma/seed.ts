@@ -43,34 +43,38 @@ async function main() {
     }
   }
 
-  // Seed Admin User
-  const adminEmail = 'admin@example.com';
-  const adminUsername = 'admin';
-  const adminPassword = 'Abcd@1234';
-  const hashedPassword = await import('bcryptjs').then(bcrypt => bcrypt.hash(adminPassword, 10));
+  // Seed Admin User from env vars to avoid leaking hardcoded credentials
+  const adminEmail = process.env.SEED_ADMIN_EMAIL
+  const adminUsername = process.env.SEED_ADMIN_USERNAME
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD
 
-  const existingAdmin = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { email: adminEmail },
-        { username: adminUsername }
-      ]
-    }
-  });
-
-  if (!existingAdmin) {
-    await prisma.user.create({
-      data: {
-        email: adminEmail,
-        username: adminUsername,
-        name: 'Admin User',
-        passwordHash: hashedPassword,
-        role: 'ADMIN'
+  if (adminEmail && adminUsername && adminPassword) {
+    const hashedPassword = await import('bcryptjs').then((bcrypt) => bcrypt.hash(adminPassword, 10))
+    const existingAdmin = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: adminEmail },
+          { username: adminUsername }
+        ]
       }
-    });
-    console.log(`Created admin user: ${adminUsername} / ${adminPassword}`);
+    })
+
+    if (!existingAdmin) {
+      await prisma.user.create({
+        data: {
+          email: adminEmail,
+          username: adminUsername,
+          name: 'Admin User',
+          passwordHash: hashedPassword,
+          role: 'ADMIN'
+        }
+      })
+      console.log(`Created admin user: ${adminUsername}`)
+    } else {
+      console.log('Admin user already exists')
+    }
   } else {
-    console.log('Admin user already exists');
+    console.log('Skip admin seed (missing SEED_ADMIN_EMAIL/SEED_ADMIN_USERNAME/SEED_ADMIN_PASSWORD)')
   }
 
   console.log('Seeding finished.')

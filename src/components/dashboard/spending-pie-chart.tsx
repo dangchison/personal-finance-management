@@ -65,7 +65,7 @@ export function SpendingPieChart({ data }: SpendingPieChartProps) {
   }
 
   return (
-    <Card className="shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition-all duration-300">
+    <Card className="border border-border/80 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">Phân bổ chi tiêu</CardTitle>
       </CardHeader>

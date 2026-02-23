@@ -1,32 +1,77 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  TrendingUp,
-  PiggyBank,
-  BarChart3,
-  Users,
-  Shield,
-  Smartphone,
-  ArrowRight,
-  CheckCircle2,
-  Sparkles,
-} from "lucide-react";
 import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { ArrowRight, BarChart3, CheckCircle2, PiggyBank, Shield, Smartphone, TrendingUp, Users, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-function FadeInSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+const features = [
+  {
+    icon: TrendingUp,
+    title: "Ghi chi tiêu nhanh",
+    description: "Nhập giao dịch trong vài giây, tự động nhóm theo ngày để dễ theo dõi.",
+    className: "md:col-span-2",
+  },
+  {
+    icon: PiggyBank,
+    title: "Giữ ngân sách đúng nhịp",
+    description: "Theo dõi mức dùng ngân sách từng danh mục theo thời gian thực.",
+    className: "",
+  },
+  {
+    icon: BarChart3,
+    title: "Báo cáo rõ ràng",
+    description: "Xem xu hướng 6 tháng và biết chính xác tiền đang đi đâu.",
+    className: "",
+  },
+  {
+    icon: Users,
+    title: "Quản lý gia đình",
+    description: "Tạo nhóm, mời thành viên và phân tách giao dịch cá nhân/gia đình.",
+    className: "",
+  },
+  {
+    icon: Shield,
+    title: "An toàn dữ liệu",
+    description: "Quyền truy cập được kiểm soát theo tài khoản và phạm vi sử dụng.",
+    className: "md:col-span-2",
+  },
+  {
+    icon: Smartphone,
+    title: "Tối ưu mọi thiết bị",
+    description: "Giao diện gọn gàng trên điện thoại, rộng rãi trên desktop.",
+    className: "",
+  },
+];
 
+const steps = [
+  {
+    title: "Tạo tài khoản",
+    description: "Đăng ký trong 1 phút và chọn phạm vi theo dõi cá nhân hoặc gia đình.",
+  },
+  {
+    title: "Thêm giao dịch",
+    description: "Nhập chi tiêu hằng ngày, lọc theo danh mục và thành viên ngay trên dashboard.",
+  },
+  {
+    title: "Theo dõi tiến độ",
+    description: "Kiểm tra báo cáo, điều chỉnh ngân sách và tối ưu thói quen chi tiêu mỗi tháng.",
+  },
+];
+
+function FadeIn({
+  children,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+}) {
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-      transition={{ duration: 0.5, delay }}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.45, delay }}
     >
       {children}
     </motion.div>
@@ -35,273 +80,208 @@ function FadeInSection({ children, delay = 0 }: { children: React.ReactNode; del
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Animated Gradient Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-cyan-500 via-teal-600 to-emerald-600 animate-gradient-xy" />
+    <div className="relative min-h-screen overflow-x-hidden bg-[#f3f7fc] text-slate-900">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-cyan-200/70 blur-3xl" />
+        <div className="absolute top-36 -right-20 h-80 w-80 rounded-full bg-blue-200/70 blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-200/60 blur-3xl" />
+      </div>
 
-      {/* Animated Shapes */}
-      <div className="fixed top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" />
-      <div className="fixed bottom-20 right-20 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl animate-pulse delay-700" />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl animate-pulse delay-1000" />
-
-      {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
-        <header className="backdrop-blur-xl bg-white/10 border-b border-white/20 sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2"
-            >
-              <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg">
-                <TrendingUp className="h-5 w-5 text-white" />
+        <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md">
+                <Wallet className="h-5 w-5" />
               </div>
-              <span className="text-xl font-bold text-white">Quản lý Chi tiêu</span>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3"
-            >
-              <Button
-                variant="ghost"
-                asChild
-                className="text-white hover:bg-white/20 hover:text-white transition-all duration-300"
-              >
+              <div>
+                <p className="text-sm font-semibold tracking-tight">Personal Finance</p>
+                <p className="text-xs text-slate-500">Quản lý chi tiêu thông minh</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" asChild className="text-slate-700 hover:bg-slate-100">
                 <Link href="/login">Đăng nhập</Link>
               </Button>
-              <Button
-                asChild
-                className="bg-white text-cyan-600 hover:bg-white/90 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <Link href="/register">Đăng ký ngay</Link>
+              <Button asChild className="bg-blue-600 text-white hover:bg-blue-500">
+                <Link href="/register">Dùng thử ngay</Link>
               </Button>
-            </motion.div>
+            </div>
           </div>
         </header>
 
-        {/* Hero Section */}
-        <section className="container mx-auto px-4 py-20 md:py-32">
-          <div className="max-w-5xl mx-auto text-center space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-6"
-            >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm">
-                <Sparkles className="h-4 w-4" />
-                <span>Quản lý tài chính thông minh</span>
+        <section className="mx-auto grid w-full max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
+          <FadeIn>
+            <div className="space-y-7">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+                <CheckCircle2 className="h-4 w-4" />
+                Gọn, rõ, dễ dùng mỗi ngày
               </div>
 
-              <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-                Kiểm soát chi tiêu,
+              <h1 className="text-4xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                Kiểm soát chi tiêu
                 <br />
-                <span className="bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
-                  Đạt mục tiêu tài chính
-                </span>
+                theo cách hiện đại
               </h1>
 
-              <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-                Ghi chép chi tiêu, lập ngân sách và theo dõi tài chính gia đình một cách dễ dàng với giao diện hiện đại
+              <p className="max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                Tập trung vào điều quan trọng nhất: biết tiền đang đi đâu, còn bao nhiêu ngân sách,
+                và cần điều chỉnh gì để đạt mục tiêu tài chính.
               </p>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4"
-            >
-              <Button
-                size="lg"
-                className="text-lg h-14 px-10 bg-white text-cyan-600 hover:bg-white/90 shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300"
-                asChild
-              >
-                <Link href="/register">
-                  Bắt đầu miễn phí
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-lg h-14 px-10 border-2 border-white/30 bg-white/10 text-white hover:text-white hover:bg-white/20 backdrop-blur-sm hover:scale-105 transition-all duration-300"
-                asChild
-              >
-                <Link href="/login">Đăng nhập</Link>
-              </Button>
-            </motion.div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button size="lg" asChild className="h-12 bg-blue-600 px-8 text-white hover:bg-blue-500">
+                  <Link href="/register">
+                    Bắt đầu miễn phí
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild className="h-12 border-slate-300 px-8 text-slate-800 hover:bg-slate-50">
+                  <Link href="/login">Mình đã có tài khoản</Link>
+                </Button>
+              </div>
 
-            {/* Stats Cards */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="pt-12"
-            >
-              <div className="backdrop-blur-xl bg-white/10 rounded-3xl p-8 border border-white/20 shadow-2xl">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="text-center space-y-2">
-                    <div className="text-5xl font-bold text-white">100%</div>
-                    <div className="text-white/80 text-lg">Miễn phí sử dụng</div>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <Shield className="h-12 w-12 mx-auto text-white" />
-                    <div className="text-white/80 text-lg">Bảo mật tuyệt đối</div>
-                  </div>
-                  <div className="text-center space-y-2">
-                    <div className="text-5xl font-bold text-white">24/7</div>
-                    <div className="text-white/80 text-lg">Truy cập mọi lúc</div>
-                  </div>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  100% miễn phí
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
+                  Không cần thẻ tín dụng
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-cyan-500" />
+                  Dùng ngay trong 1 phút
+                </span>
+              </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.1}>
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] sm:p-6">
+              <div className="mb-5 flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-700">Dashboard tháng hiện tại</p>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">Live overview</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs text-slate-500">Chi tiêu tháng này</p>
+                  <p className="mt-2 text-xl font-semibold text-red-600">12.450.000 ₫</p>
+                  <p className="mt-1 text-xs text-slate-500">+8% so với tháng trước</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs text-slate-500">Ngân sách còn lại</p>
+                  <p className="mt-2 text-xl font-semibold text-emerald-600">3.550.000 ₫</p>
+                  <p className="mt-1 text-xs text-slate-500">72% ngân sách đã dùng</p>
                 </div>
               </div>
-            </motion.div>
+
+              <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 p-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Ăn uống</span>
+                  <span className="font-medium">4.300.000 ₫</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div className="h-2 w-[68%] rounded-full bg-blue-500" />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Di chuyển</span>
+                  <span className="font-medium">1.620.000 ₫</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div className="h-2 w-[42%] rounded-full bg-cyan-500" />
+                </div>
+              </div>
+            </div>
+          </FadeIn>
+        </section>
+
+        <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="text-3xl font-semibold text-slate-900">24/7</p>
+              <p className="mt-1 text-sm text-slate-500">Theo dõi tài chính mọi lúc</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="text-3xl font-semibold text-slate-900">2 chế độ</p>
+              <p className="mt-1 text-sm text-slate-500">Cá nhân và gia đình linh hoạt</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="text-3xl font-semibold text-slate-900">6 tháng</p>
+              <p className="mt-1 text-sm text-slate-500">Báo cáo xu hướng trực quan</p>
+            </div>
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="w-full py-20">
-          <div className="container mx-auto px-4">
-            <FadeInSection>
-              <div className="text-center space-y-4 mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-white">
-                  Tính năng nổi bật
+        <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+          <FadeIn>
+            <div className="mb-10 space-y-3">
+              <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">Tính năng nổi bật</p>
+              <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                Đủ mạnh để quản lý tài chính, đủ gọn để dùng mỗi ngày
+              </h2>
+            </div>
+          </FadeIn>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {features.map((feature, index) => (
+              <FadeIn key={feature.title} delay={index * 0.04}>
+                <div className={`h-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm ${feature.className}`}>
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100">
+                    <feature.icon className="h-5 w-5 text-slate-700" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{feature.description}</p>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+          <FadeIn>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
+              <div className="mb-8">
+                <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">Cách hoạt động</p>
+                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Bắt đầu nhanh trong 3 bước</h2>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-3">
+                {steps.map((step, index) => (
+                  <div key={step.title} className="space-y-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+                      {index + 1}
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900">{step.title}</h3>
+                    <p className="text-sm leading-relaxed text-slate-600">{step.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FadeIn>
+        </section>
+
+        <section className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">
+          <FadeIn>
+            <div className="rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-600 to-cyan-600 p-8 text-white sm:p-12">
+              <div className="max-w-3xl space-y-5">
+                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                  Sẵn sàng làm chủ tài chính của bạn?
                 </h2>
-                <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                  Mọi công cụ bạn cần để quản lý tài chính cá nhân và gia đình
+                <p className="text-white/90">
+                  Tạo tài khoản miễn phí và bắt đầu ghi chép giao dịch đầu tiên ngay hôm nay.
                 </p>
+                <Button size="lg" asChild className="h-12 bg-white px-8 text-blue-700 hover:bg-slate-100">
+                  <Link href="/register">
+                    Đăng ký miễn phí
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
               </div>
-            </FadeInSection>
-
-            <div className="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  icon: TrendingUp,
-                  title: "Theo dõi chi tiêu",
-                  description: "Ghi chép và phân loại chi tiêu hàng ngày một cách dễ dàng, nhanh chóng",
-                  delay: 0,
-                },
-                {
-                  icon: PiggyBank,
-                  title: "Quản lý ngân sách",
-                  description: "Thiết lập và theo dõi ngân sách theo từng danh mục, tránh chi tiêu vượt mức",
-                  delay: 0.1,
-                },
-                {
-                  icon: BarChart3,
-                  title: "Báo cáo trực quan",
-                  description: "Biểu đồ và thống kê chi tiết giúp bạn hiểu rõ thói quen chi tiêu của mình",
-                  delay: 0.2,
-                },
-                {
-                  icon: Users,
-                  title: "Quản lý gia đình",
-                  description: "Chia sẻ và theo dõi chi tiêu cùng người thân, quản lý tài chính gia đình hiệu quả",
-                  delay: 0.3,
-                },
-                {
-                  icon: Shield,
-                  title: "Bảo mật cao",
-                  description: "Dữ liệu được mã hóa và bảo vệ an toàn, bạn hoàn toàn yên tâm",
-                  delay: 0.4,
-                },
-                {
-                  icon: Smartphone,
-                  title: "Giao diện thân thiện",
-                  description: "Thiết kế hiện đại, dễ sử dụng trên mọi thiết bị, từ di động đến máy tính",
-                  delay: 0.5,
-                },
-              ].map((feature, index) => (
-                <FadeInSection key={index} delay={feature.delay}>
-                  <div className="backdrop-blur-xl bg-white/10 rounded-2xl p-6 border border-white/20 hover:bg-white/20 hover:border-white/30 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-2xl h-full">
-                    <div className="space-y-4">
-                      <div className="h-14 w-14 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center">
-                        <feature.icon className="h-7 w-7 text-white" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-white">{feature.title}</h3>
-                      <p className="text-white/80 leading-relaxed">{feature.description}</p>
-                    </div>
-                  </div>
-                </FadeInSection>
-              ))}
             </div>
-          </div>
-        </section>
-
-        {/* Benefits Section */}
-        <section className="container mx-auto px-4 py-20">
-          <div className="max-w-4xl mx-auto">
-            <FadeInSection>
-              <div className="text-center space-y-4 mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-white">
-                  Tại sao nên chọn chúng tôi?
-                </h2>
-              </div>
-            </FadeInSection>
-
-            <div className="space-y-6">
-              {[
-                {
-                  title: "Tiết kiệm thời gian",
-                  description: "Giao diện đơn giản, thao tác nhanh chóng. Chỉ vài giây để ghi chép mỗi giao dịch.",
-                  delay: 0,
-                },
-                {
-                  title: "Kiểm soát tài chính tốt hơn",
-                  description: "Biết rõ tiền đi đâu, chi bao nhiêu. Nhận thông báo khi sắp vượt ngân sách.",
-                  delay: 0.1,
-                },
-                {
-                  title: "Đạt mục tiêu nhanh hơn",
-                  description: "Theo dõi tiến độ, điều chỉnh chi tiêu kịp thời để đạt được mục tiêu tài chính của bạn.",
-                  delay: 0.2,
-                },
-              ].map((benefit, index) => (
-                <FadeInSection key={index} delay={benefit.delay}>
-                  <div className="backdrop-blur-xl bg-white/10 rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                    <div className="flex items-start gap-4">
-                      <CheckCircle2 className="h-7 w-7 text-white mt-1 flex-shrink-0" />
-                      <div className="space-y-2">
-                        <h3 className="text-2xl font-semibold text-white">{benefit.title}</h3>
-                        <p className="text-white/80 text-lg leading-relaxed">{benefit.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                </FadeInSection>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="w-full py-20 pb-32">
-          <div className="container mx-auto px-4">
-            <FadeInSection>
-              <div className="max-w-4xl mx-auto">
-                <div className="backdrop-blur-xl bg-white/20 rounded-3xl p-12 border border-white/30 shadow-2xl text-center space-y-8">
-                  <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-                    Bắt đầu quản lý tài chính ngay hôm nay
-                  </h2>
-                  <p className="text-xl text-white/90 leading-relaxed">
-                    Hoàn toàn miễn phí. Không cần thẻ tín dụng. <br />
-                    Chỉ mất 1 phút để tạo tài khoản.
-                  </p>
-                  <Button
-                    size="lg"
-                    className="text-lg h-16 px-12 bg-white text-cyan-600 hover:bg-white/90 shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300"
-                    asChild
-                  >
-                    <Link href="/register">
-                      Đăng ký miễn phí
-                      <ArrowRight className="ml-2 h-6 w-6" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </FadeInSection>
-          </div>
+          </FadeIn>
         </section>
       </div>
     </div>

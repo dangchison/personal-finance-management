@@ -3,8 +3,9 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getTransactions, getCategories } from "@/actions/transaction";
 import { TransactionsClient } from "@/components/transaction/transactions-client";
-import { PageHeader } from "@/components/ui/page-header";
 import { getFamilyMembers } from "@/actions/family";
+import { parseDateParam } from "@/lib/app-time";
+import { WorkspaceLayout } from "@/components/layout/workspace-layout";
 
 export default async function TransactionsPage({
   searchParams,
@@ -22,8 +23,14 @@ export default async function TransactionsPage({
   const scope = (resolvedSearchParams.scope as "personal" | "family") || "personal";
   const categoryId = resolvedSearchParams.categoryId as string;
   const memberId = resolvedSearchParams.memberId as string;
-  const startDate = resolvedSearchParams.from ? new Date(resolvedSearchParams.from as string) : undefined;
-  const endDate = resolvedSearchParams.to ? new Date(resolvedSearchParams.to as string) : undefined;
+  const fromParam = Array.isArray(resolvedSearchParams.from)
+    ? resolvedSearchParams.from[0]
+    : resolvedSearchParams.from;
+  const toParam = Array.isArray(resolvedSearchParams.to)
+    ? resolvedSearchParams.to[0]
+    : resolvedSearchParams.to;
+  const startDate = parseDateParam(fromParam);
+  const endDate = parseDateParam(toParam);
 
   const [categories, transactions, familyMembers] = await Promise.all([
     getCategories(),
@@ -38,15 +45,14 @@ export default async function TransactionsPage({
   ]);
 
   return (
-    <div className="flex flex-col h-screen max-w-5xl mx-auto">
-      <div className="flex-none p-4 pb-0">
-        <PageHeader
-          title="Lịch sử giao dịch"
-          description="Xem lại toàn bộ chi tiêu của bạn"
-        />
-      </div>
-
-      <div className="flex-1 overflow-hidden p-4">
+    <WorkspaceLayout
+      title="Lịch sử giao dịch"
+      description="Xem lại toàn bộ chi tiêu của bạn"
+      maxWidthClassName="max-w-6xl"
+      fullHeight
+      contentInnerClassName="h-full p-4 sm:p-5"
+    >
+      <div className="h-full overflow-hidden">
         <TransactionsClient
           initialTransactions={transactions}
           categories={categories}
@@ -54,6 +60,6 @@ export default async function TransactionsPage({
           initialScope={scope}
         />
       </div>
-    </div>
+    </WorkspaceLayout>
   );
 }
