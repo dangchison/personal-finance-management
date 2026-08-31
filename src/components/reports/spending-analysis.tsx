@@ -1,11 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { Panel, SteelGrid, Readout } from "@/components/ui/panel";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { formatCurrencyFull } from "@/lib/format-currency";
+import { formatCurrency } from "@/lib/format-currency";
+import { catColor, SLICE_STROKE } from "@/lib/chart-colors";
 
 interface SpendingAnalysisProps {
     summary: {
@@ -18,17 +18,17 @@ interface SpendingAnalysisProps {
     }[];
 }
 
-const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#F43F5E', '#8B5CF6', '#EC4899', '#6366F1'];
-
 export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps) {
     const [activeIndex, setActiveIndex] = useState<number | undefined>();
 
     // Calculate percentages
     const totalExpense = summary.expense;
+    // getCategoryStats đã sort giảm dần nên index 0 là miếng tiêu nhiều nhất —
+    // thang "than nguội" chỉ đúng nghĩa khi thứ tự đó được giữ nguyên.
     const categoriesWithPercent = useMemo(() => categories.map((cat, index) => ({
         ...cat,
         percent: totalExpense > 0 ? (cat.value / totalExpense) * 100 : 0,
-        color: COLORS[index % COLORS.length]
+        color: catColor(index, categories.length)
     })), [categories, totalExpense]);
 
     const onPieEnter = (_: unknown, index: number) => {
@@ -36,7 +36,9 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
     };
 
     const renderShape = (props: unknown) => {
-        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, index } = props as {
+        // Phải nhận và truyền tiếp stroke: recharts đưa prop của <Pie> vào shape,
+        // shape không chuyển xuống <Sector> thì nét ngăn miếng biến mất.
+        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, stroke, strokeWidth, index } = props as {
             cx: number;
             cy: number;
             innerRadius: number;
@@ -44,6 +46,8 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
             startAngle: number;
             endAngle: number;
             fill: string;
+            stroke: string;
+            strokeWidth: number;
             index: number;
         };
         const isActive = activeIndex === index;
@@ -58,6 +62,8 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                     startAngle={startAngle}
                     endAngle={endAngle}
                     fill={fill}
+                    stroke={stroke}
+                    strokeWidth={strokeWidth}
                     style={{ outline: 'none', cursor: 'pointer' }}
                 />
             </g>
@@ -65,43 +71,20 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 gap-4">
-                <Card className="shadow-sm">
-                    <CardContent className="p-4 pt-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                            <div className="p-1 rounded-full bg-rose-100 dark:bg-rose-900/30">
-                                <ArrowUp className="w-3 h-3 text-rose-500" />
-                            </div>
-                            Chi tiêu
-                        </div>
-                        <div className="text-xl font-bold text-rose-600 dark:text-rose-500">
-                            {formatCurrencyFull(summary.expense)}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="shadow-sm">
-                    <CardContent className="p-4 pt-4">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                            <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                                <ArrowDown className="w-3 h-3 text-emerald-500" />
-                            </div>
-                            Thu nhập
-                        </div>
-                        <div className="text-xl font-bold text-emerald-600 dark:text-emerald-500">
-                            {formatCurrencyFull(summary.income)}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            <SteelGrid className="grid-cols-2">
+                <Readout label="Chi tiêu" tone="var(--pf-expense-ink)">
+                    {formatCurrency(summary.expense)}
+                </Readout>
+                <Readout label="Thu nhập" tone="var(--pf-ok-ink)">
+                    {formatCurrency(summary.income)}
+                </Readout>
+            </SteelGrid>
 
             {/* Chart & Allocation */}
-            <Card className="border-none shadow-none sm:border sm:shadow-sm">
-                <CardHeader className="pb-2 px-0 sm:px-6">
-                    <CardTitle>Phân bổ chi tiêu</CardTitle>
-                </CardHeader>
-                <CardContent className="px-0 sm:px-6">
+            <Panel plaque="Phân bổ chi tiêu">
+                <div className="p-4 sm:p-5">
                     <div className="flex flex-col md:flex-row items-center gap-8">
                         {/* Donut Chart */}
                         <div className="relative w-full md:w-1/2 h-[260px] flex justify-center [&_:focus]:outline-none">
@@ -114,10 +97,11 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                                             cy="50%"
                                             innerRadius={70}
                                             outerRadius={100}
-                                            paddingAngle={2}
+                                            paddingAngle={1}
                                             dataKey="value"
-                                            stroke="none"
-                                            isAnimationActive={true}
+                                            stroke={SLICE_STROKE}
+                                            strokeWidth={1}
+                                            isAnimationActive={false}
                                             shape={renderShape}
                                             onMouseEnter={onPieEnter}
                                             onMouseLeave={() => setActiveIndex(undefined)}
@@ -142,50 +126,54 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                             {/* Center Text */}
                             {categories.length > 0 && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                                    <span className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Tổng chi</span>
+                                    <span className="pf-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase">Tổng chi</span>
+                                    <span className="pf-mono mt-1 text-sm font-semibold text-(--pf-expense-ink)">
+                                        {formatCurrency(totalExpense)}
+                                    </span>
                                 </div>
                             )}
                         </div>
 
                         {/* Category List */}
-                        <div className="w-full md:w-1/2 space-y-6">
-                            <div className="flex items-center justify-between text-sm font-medium text-muted-foreground border-b pb-2">
+                        <div className="w-full md:w-1/2 space-y-4">
+                            <div className="pf-mono flex items-center justify-between border-b border-border pb-2 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
                                 <span>Danh mục</span>
                                 <span>Số tiền</span>
                             </div>
-                            <div className="space-y-4">
+                            <div className="divide-y divide-border">
                                 {categoriesWithPercent.map((cat, index) => {
                                     const isActive = activeIndex === index;
                                     return (
-                                        <div
+                                        <button
                                             key={index}
+                                            type="button"
                                             className={cn(
-                                                "flex items-center justify-between group transition-transform duration-300 ease-out cursor-pointer py-1",
-                                                isActive ? "-translate-y-1" : ""
+                                                "flex min-h-11 w-full items-center justify-between gap-3 px-2 text-left transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none",
+                                                isActive && "bg-accent"
                                             )}
                                             onMouseEnter={() => setActiveIndex(index)}
                                             onMouseLeave={() => setActiveIndex(undefined)}
+                                            onFocus={() => setActiveIndex(index)}
+                                            onBlur={() => setActiveIndex(undefined)}
+                                            /* Là <button> thì Enter/Space phải làm gì đó, không thì
+                                               trình đọc màn hình đọc ra nút bấm được mà bấm không có gì. */
+                                            onClick={() => setActiveIndex(index)}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-3 h-3 rounded-full ring-2 ring-offset-2 ring-offset-background"
-                                                    style={{ backgroundColor: cat.color, '--tw-ring-color': cat.color } as React.CSSProperties}
+                                            <span className="flex min-w-0 items-center gap-3">
+                                                <span
+                                                    aria-hidden
+                                                    className="h-[14px] w-[2px] shrink-0"
+                                                    style={{ backgroundColor: cat.color }}
                                                 />
-                                                <span className={cn(
-                                                    "text-sm transition-all origin-left",
-                                                    isActive ? "font-bold scale-110" : "font-semibold"
-                                                )}>
+                                                <span className="truncate text-sm text-foreground">
                                                     {cat.name}
                                                 </span>
-                                                <span className="text-xs text-muted-foreground font-medium">({cat.percent.toFixed(0)}%)</span>
-                                            </div>
-                                            <span className={cn(
-                                                "text-sm transition-all text-foreground origin-right",
-                                                isActive ? "font-extrabold scale-110" : "font-bold"
-                                            )}>
-                                                {formatCurrencyFull(cat.value)}
+                                                <span className="pf-mono shrink-0 text-[11px] tracking-wide text-muted-foreground">({cat.percent.toFixed(0)}%)</span>
                                             </span>
-                                        </div>
+                                            <span className="pf-mono shrink-0 text-sm font-semibold whitespace-nowrap text-(--pf-expense-ink)">
+                                                {formatCurrency(cat.value)}
+                                            </span>
+                                        </button>
                                     );
                                 })}
                                 {categories.length === 0 && (
@@ -196,8 +184,8 @@ export function SpendingAnalysis({ summary, categories }: SpendingAnalysisProps)
                             </div>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </Panel>
         </div>
     );
 }

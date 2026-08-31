@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,40 +76,42 @@ export function BudgetList({ initialBudgets, categories }: BudgetListProps) {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="space-y-1">
-          <CardTitle>Ngân sách tháng này</CardTitle>
-          <CardDescription>
-            Quản lý chi tiêu theo từng danh mục
-          </CardDescription>
-        </div>
-        <Button onClick={openCreate} size="sm">
+    <Panel plaque="Ngân sách tháng này" className="p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          Quản lý chi tiêu theo từng danh mục
+        </p>
+        <Button onClick={openCreate} className="pf-action shrink-0 rounded-sm">
           <Plus className="h-4 w-4 mr-2" />
           Thêm ngân sách
         </Button>
-      </CardHeader>
-      <CardContent className="space-y-6 pt-6">
+      </div>
+      <div className="mt-4">
         {initialBudgets.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
+          <div className="pf-mono border border-dashed border-border py-10 text-center text-xs tracking-[0.1em] text-muted-foreground uppercase">
             Chưa có ngân sách nào. Hãy tạo ngân sách đầu tiên!
           </div>
         ) : (
-          <div className="grid gap-6">
+          <div className="divide-y divide-border border border-border">
             {initialBudgets.map((budget) => (
-              <div key={budget.categoryId} className="group relative pr-8">
-                <div className="absolute right-0 top-0">
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEdit(budget)}>
-                    <Pencil className="h-3 w-3" />
-                  </Button>
-                </div>
+              <div key={budget.categoryId} className="flex items-start gap-2 p-3 sm:p-4">
                 <BudgetProgressComponent
+                  className="min-w-0 flex-1"
                   categoryName={budget.category.name}
                   spent={budget.spent}
                   total={budget.amount}
                   percentage={budget.percentage}
                   isOverBudget={budget.isOverBudget}
                 />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Sửa ngân sách"
+                  className="size-11 shrink-0 rounded-sm sm:size-9"
+                  onClick={() => openEdit(budget)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>
@@ -154,17 +156,17 @@ export function BudgetList({ initialBudgets, categories }: BudgetListProps) {
                 />
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                <Button type="button" variant="outline" className="rounded-sm" onClick={() => setIsOpen(false)}>
                   Hủy
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" className="rounded-sm" disabled={isSubmitting}>
                   Lưu
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
-      </CardContent>
-    </Card>
+      </div>
+    </Panel>
   );
 }

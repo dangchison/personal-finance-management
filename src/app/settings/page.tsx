@@ -5,10 +5,14 @@ import { getCategories } from "@/actions/transaction";
 import { getBudgetProgress } from "@/actions/budget";
 import { getSystemCategories } from "@/actions/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, SteelGrid, Readout } from "@/components/ui/panel";
 import { BudgetList } from "@/components/budget/budget-list";
 import { CategoryClient } from "@/components/admin/category-client";
 import { WorkspaceLayout } from "@/components/layout/workspace-layout";
+import { TAB_LIST, TAB_TRIGGER } from "@/lib/tab-styles";
+import { cn } from "@/lib/utils";
+
+const TAB_LIST_CLASS = cn(TAB_LIST, "w-full overflow-x-auto sm:w-auto");
 
 export default async function SettingsPage({
   searchParams,
@@ -33,45 +37,34 @@ export default async function SettingsPage({
   const defaultTab = (resolvedSearchParams.tab as string) || "budget";
 
   return (
-    <WorkspaceLayout
-      maxWidthClassName="max-w-5xl"
-      contentInnerClassName="p-4 sm:p-5"
-    >
-      <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="general">Thông tin chung</TabsTrigger>
-          <TabsTrigger value="budget">Ngân sách</TabsTrigger>
-          {isAdmin && <TabsTrigger value="categories">Danh mục hệ thống (Admin)</TabsTrigger>}
+    <WorkspaceLayout withPanel={false}>
+      <Tabs defaultValue={defaultTab} className="gap-4">
+        <TabsList className={TAB_LIST_CLASS}>
+          <TabsTrigger value="general" className={TAB_TRIGGER}>
+            Thông tin chung
+          </TabsTrigger>
+          <TabsTrigger value="budget" className={TAB_TRIGGER}>
+            Ngân sách
+          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="categories" className={TAB_TRIGGER}>
+              Danh mục hệ thống (Admin)
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="general">
-          <Card>
-            <CardHeader>
-              <CardTitle>Thông tin tài khoản</CardTitle>
-              <CardDescription>
-                Thông tin cá nhân và bảo mật
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Tên hiển thị</label>
-                  <div className="p-2 border rounded-md bg-muted/50">{session.user?.name || "Chưa cập nhật"}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Email</label>
-                  <div className="p-2 border rounded-md bg-muted/50">{session.user?.email}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Vai trò</label>
-                  <div className="p-2 border rounded-md bg-muted/50 font-mono text-xs">{session.user?.role}</div>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-4">
-                Hiện tại bạn chưa thể thay đổi thông tin này trực tiếp.
-              </p>
-            </CardContent>
-          </Card>
+          <Panel plaque="Thông tin tài khoản" className="p-4 sm:p-5">
+            <p className="text-sm text-muted-foreground">Thông tin cá nhân và bảo mật</p>
+            <SteelGrid className="mt-4 grid-cols-1 sm:grid-cols-3">
+              <Readout label="Tên hiển thị" wrap>{session.user?.name || "Chưa cập nhật"}</Readout>
+              <Readout label="Email" wrap>{session.user?.email}</Readout>
+              <Readout label="Vai trò" wrap>{session.user?.role}</Readout>
+            </SteelGrid>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Hiện tại bạn chưa thể thay đổi thông tin này trực tiếp.
+            </p>
+          </Panel>
         </TabsContent>
 
         <TabsContent value="budget">
@@ -80,17 +73,12 @@ export default async function SettingsPage({
 
         {isAdmin && (
           <TabsContent value="categories">
-            <Card>
-              <CardHeader>
-                <CardTitle>Quản lý danh mục hệ thống</CardTitle>
-                <CardDescription>
-                  Thêm, sửa, xóa các danh mục mặc định của hệ thống.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CategoryClient categories={systemCategories} />
-              </CardContent>
-            </Card>
+            <Panel plaque="Quản lý danh mục hệ thống" className="p-4 sm:p-5">
+              <p className="text-sm text-muted-foreground">
+                Thêm, sửa, xóa các danh mục mặc định của hệ thống.
+              </p>
+              <CategoryClient categories={systemCategories} />
+            </Panel>
           </TabsContent>
         )}
       </Tabs>

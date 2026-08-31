@@ -1,8 +1,10 @@
 "use client";
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrencyFull } from "@/lib/format-currency";
+import { Panel, SteelGrid, Readout } from "@/components/ui/panel";
+import { SERIES } from "@/lib/chart-colors";
+import { formatCurrency } from "@/lib/format-currency";
+import { AXIS_TICK, TOOLTIP_STYLE, axisMoney } from "@/lib/chart-axis";
 
 interface RecentTrendChartProps {
     data: {
@@ -17,60 +19,58 @@ export function RecentTrendChart({ data }: RecentTrendChartProps) {
     const average = Math.round(total / (data.length || 1));
 
     return (
-        <Card className="col-span-1 lg:col-span-2">
-            <CardHeader>
-                <CardTitle>Xu hướng 6 tháng gần đây</CardTitle>
-                <CardDescription>
+        <Panel plaque="Xu hướng 6 tháng gần đây">
+            <div className="p-4 sm:p-5">
+                <p className="pf-mono text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
                     Biểu đồ chi tiêu thực tế từ các tháng trước
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="h-[350px] w-full">
+                </p>
+                <div className="mt-4 h-[280px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={data} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                             <XAxis
                                 dataKey="month"
-                                stroke="#6B7280"
-                                fontSize={12}
+                                tick={AXIS_TICK}
                                 tickLine={false}
                                 axisLine={false}
                                 dy={10}
                             />
                             <YAxis
-                                stroke="#6B7280"
-                                fontSize={12}
+                                tick={AXIS_TICK}
                                 tickLine={false}
                                 axisLine={false}
-                                tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                                tickFormatter={axisMoney}
                             />
                             <Tooltip
                                 cursor={{ fill: 'transparent' }}
-                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                contentStyle={TOOLTIP_STYLE}
                                 formatter={(value: number | undefined) => [
-                                    formatCurrencyFull(value || 0),
+                                    formatCurrency(value || 0),
                                     "Chi tiêu"
                                 ]}
                             />
                             <Bar
                                 dataKey="value"
                                 name="Chi tiêu"
-                                fill="#F43F5E" // Rose-500 equivalent
-                                radius={[6, 6, 0, 0]}
+                                fill={SERIES.expense}
+                                radius={0}
                                 barSize={32}
+                                isAnimationActive={false}
                             />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground px-2">
-                    <div>
-                        Tổng chi 6 tháng: <span className="font-medium text-foreground">{formatCurrencyFull(total)}</span>
-                    </div>
-                    <div>
-                        Trung bình: <span className="font-medium text-foreground">{formatCurrencyFull(average)}/tháng</span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
+                {/* Hàng đo chứ không phải hai cột chữ: ở 375px cặp nhãn + số tiền
+                    xuống dòng giữa chừng, "32.828.677 ₫/tháng" bị bẻ làm đôi. */}
+                <SteelGrid className="mt-4 grid-cols-2">
+                    <Readout label="Tổng chi 6 tháng" tone="var(--pf-expense-ink)">
+                        {formatCurrency(total)}
+                    </Readout>
+                    <Readout label="Trung bình mỗi tháng" tone="var(--pf-expense-ink)">
+                        {formatCurrency(average)}
+                    </Readout>
+                </SteelGrid>
+            </div>
+        </Panel>
     );
 }

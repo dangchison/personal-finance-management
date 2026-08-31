@@ -34,8 +34,8 @@ export function CategoryClient({ categories }: CategoryClientProps) {
 
     return (
         <>
-            <div className="flex justify-end mb-4">
-                <Button onClick={handleCreate}>
+            <div className="mt-4 mb-3 flex justify-end">
+                <Button onClick={handleCreate} className="pf-action rounded-sm">
                     <Plus className="mr-2 h-4 w-4" />
                     Thêm danh mục
                 </Button>

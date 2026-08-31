@@ -25,7 +25,7 @@ import {
 import { deleteSystemCategory } from "@/actions/admin";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface CategoryTableProps {
     categories: Category[];
@@ -52,43 +52,48 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
     };
 
     return (
-        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <div className="overflow-hidden border border-border bg-card">
             <Table>
-                <TableHeader className="bg-muted/30">
+                <TableHeader className="bg-transparent">
                     <TableRow className="hover:bg-transparent">
-                        <TableHead className="w-[300px] pl-6 font-semibold">Tên danh mục</TableHead>
-                        <TableHead className="font-semibold">Loại phân loại</TableHead>
-                        <TableHead className="text-right pr-6 font-semibold">Hành động</TableHead>
+                        <TableHead className="pf-mono h-10 w-[300px] pl-4 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Tên danh mục</TableHead>
+                        <TableHead className="pf-mono h-10 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Loại phân loại</TableHead>
+                        <TableHead className="pf-mono h-10 pr-4 text-right text-[10px] tracking-[0.14em] text-muted-foreground uppercase">Hành động</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {categories.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={3} className="text-center h-32 text-muted-foreground">
+                            <TableCell colSpan={3} className="pf-mono h-28 text-center text-xs tracking-[0.1em] text-muted-foreground uppercase">
                                 Chưa có danh mục nào.
                             </TableCell>
                         </TableRow>
                     ) : (
                         categories.map((category) => (
                             <TableRow key={category.id} className="hover:bg-muted/40 transition-colors">
-                                <TableCell className="font-medium text-base py-4 pl-6">{category.name}</TableCell>
+                                <TableCell className="py-3 pl-4 text-sm text-foreground">{category.name}</TableCell>
                                 <TableCell>
-                                    <Badge
-                                        className={`px-4 py-1 rounded-full text-sm font-medium border-0 shadow-sm ${category.type === 'INCOME'
-                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                                            : 'bg-rose-500 hover:bg-rose-600 text-white'
-                                            }`}
+                                    {/* Chip tự viết chứ không dùng Badge: cva của Badge có rounded-full và
+                                        variant mặc định nền vàng đặc, sẽ phá Luật một nguồn sáng. */}
+                                    <span
+                                        className={cn(
+                                            "pf-mono inline-flex items-center border px-2 py-0.5 text-[11px] tracking-[0.1em] uppercase",
+                                            category.type === 'INCOME'
+                                                ? "border-(--pf-ok) text-(--pf-ok-ink)"
+                                                : "border-(--pf-expense) text-(--pf-expense-ink)"
+                                        )}
                                     >
                                         {category.type === 'INCOME' ? 'Thu nhập' : 'Chi tiêu'}
-                                    </Badge>
+                                    </span>
                                 </TableCell>
-                                <TableCell className="text-right pr-6">
+                                <TableCell className="pr-4 text-right">
                                     <div className="flex justify-end gap-1">
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => onEdit(category)}
-                                            className="h-8 w-8 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 rounded-full"
+                                            aria-label="Sửa danh mục"
+                                            className="size-11 rounded-sm text-muted-foreground hover:text-(--pf-expense-ink) sm:size-9"
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Button>
@@ -98,7 +103,8 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-8 w-8 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-full"
+                                                    aria-label="Xóa danh mục"
+                                                    className="size-11 rounded-sm text-muted-foreground hover:text-(--pf-over-ink) sm:size-9"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -114,8 +120,7 @@ export function CategoryTable({ categories, onEdit }: CategoryTableProps) {
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>
                                                     <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                                    <AlertDialogAction
-                                                        className="bg-red-600 hover:bg-red-700"
+                                                    <AlertDialogAction variant="destructive"
                                                         onClick={() => handleDelete(category.id)}
                                                         disabled={deletingId === category.id}
                                                     >

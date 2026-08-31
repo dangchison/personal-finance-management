@@ -9,12 +9,9 @@ export default async function FamilyPage() {
 
   return (
     <WorkspaceLayout
-      maxWidthClassName="max-w-5xl"
       withPanel={false}
     >
-      <div className="space-y-6">
-        <FamilyManagement initialFamily={family} />
-      </div>
+      <FamilyManagement initialFamily={family} />
     </WorkspaceLayout>
   );
 }

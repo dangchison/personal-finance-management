@@ -3,17 +3,27 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { MonthPicker } from "@/components/ui/month-picker";
+import { TAB_LIST, TAB_TRIGGER } from "@/lib/tab-styles";
+import { cn } from "@/lib/utils";
 
 interface ReportFiltersProps {
   initialScope: "personal" | "family";
   hasFamily: boolean;
+  /** Kỳ mà server đã thực sự truy vấn. Truyền xuống thay vì tự tính bằng
+   *  new Date() để cây server và cây client không lệch nhau. */
+  initialFrom: Date;
 }
 
 export function ReportFilters({
   initialScope,
   hasFamily,
+  initialFrom,
 }: ReportFiltersProps) {
-  const { updateFilters, updateDateRange, dateRange } = useUrlFilters("/reports");
+  const { updateFilters, updateDateRange, dateRange, searchParams } = useUrlFilters("/reports");
+
+  // Tabs bám thẳng vào URL: nếu để uncontrolled thì bấm Back sẽ đưa URL về
+  // personal trong khi tab vẫn sáng ở family.
+  const scope = searchParams.get("scope") || initialScope;
 
   const handleScopeChange = (value: string) => {
     updateFilters({ scope: value });
@@ -24,27 +34,33 @@ export function ReportFilters({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
       {hasFamily ? (
         <Tabs
-          defaultValue={initialScope}
+          value={scope}
           onValueChange={handleScopeChange}
-          className="w-[200px]"
+          className="w-full sm:w-auto"
         >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="personal">Cá nhân</TabsTrigger>
-            <TabsTrigger value="family">Gia đình</TabsTrigger>
+          <TabsList className={cn(TAB_LIST, "grid w-full grid-cols-2 sm:w-[400px]")}>
+            <TabsTrigger value="personal" className={TAB_TRIGGER}>
+              Cá nhân
+            </TabsTrigger>
+            <TabsTrigger value="family" className={TAB_TRIGGER}>
+              Gia đình
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       ) : (
-        <div className="text-lg font-semibold">Báo cáo cá nhân</div>
+        <div className="pf-display text-lg font-bold text-foreground">Báo cáo cá nhân</div>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="flex w-full items-center gap-2 sm:w-auto">
         <MonthPicker
-          date={dateRange?.from}
+          /* Không có tham số URL thì vẫn phải hiện đúng kỳ server đang trả,
+             nếu không màn báo cáo không nói nó đang xem tháng nào. */
+          date={dateRange?.from ?? initialFrom}
           onDateChange={handleDateSelect}
-          className="w-[200px]"
+          className="h-11 w-full sm:h-9 sm:w-[200px]"
           align="end"
         />
       </div>

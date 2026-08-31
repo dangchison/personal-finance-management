@@ -92,16 +92,18 @@ export function MonthPicker({ date, onDateChange, className, align = "start" }: 
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-11 w-11 rounded-none sm:h-9 sm:w-9"
+                        aria-label="Năm trước"
                         onClick={() => handleYearChange('prev')}
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <div className="font-semibold text-sm">{selectedYear}</div>
+                    <div className="pf-mono text-sm font-semibold tracking-[0.12em]">{selectedYear}</div>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-11 w-11 rounded-none sm:h-9 sm:w-9"
+                        aria-label="Năm sau"
                         onClick={() => handleYearChange('next')}
                         disabled={selectedYear >= currentYear}
                     >
@@ -121,12 +123,15 @@ export function MonthPicker({ date, onDateChange, className, align = "start" }: 
                                 onClick={() => handleMonthSelect(index)}
                                 disabled={isFuture}
                                 className={cn(
-                                    "h-10 rounded-md text-sm font-medium transition-colors",
+                                    "pf-mono h-11 rounded-none text-[13px] font-medium transition-colors",
                                     "hover:bg-accent hover:text-accent-foreground",
                                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                     "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background",
+                                    // Viền vàng chứ không nền vàng đặc: popover này mở đè lên màn
+                                    // đã có sẵn một khối vàng (FAB trên mobile, nút chính trên desktop),
+                                    // nền đặc ở đây là nguồn sáng thứ hai.
                                     isSelected
-                                        ? "bg-primary text-primary-foreground"
+                                        ? "border border-(--pf-expense) bg-background font-semibold text-(--pf-expense-ink)"
                                         : "bg-background"
                                 )}
                             >

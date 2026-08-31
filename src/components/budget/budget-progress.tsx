@@ -2,7 +2,7 @@
 
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { formatCurrencyFull } from "@/lib/format-currency";
+import { formatCurrency } from "@/lib/format-currency";
 
 interface BudgetProgressProps {
   categoryName: string;
@@ -21,40 +21,56 @@ export function BudgetProgress({
   isOverBudget,
   className,
 }: BudgetProgressProps) {
-  // Determine color
-  // < 80%: default (primary?) or green
-  // 80 - 100%: yellow/orange
-  // > 100%: red
-
+  // Ba ngưỡng dùng mã màu dữ liệu của thế giới: an toàn → xanh, sắp chạm → vàng, chạm/vượt → đỏ.
   const indicatorColor =
-    percentage >= 100 ? "bg-red-500" :
-      percentage >= 80 ? "bg-yellow-500" :
-        "bg-emerald-500";
+    percentage >= 100 ? "bg-(--pf-over)" :
+      percentage >= 80 ? "bg-(--pf-expense)" :
+        "bg-(--pf-ok)";
+
+  // getBudgetProgress kẹp trần percentage ở 100 (actions/budget.ts), nên vượt 300%
+  // vẫn đọc ra "100%". Tính lại tỉ lệ thật từ spent/total để con số nói đúng mức vượt;
+  // thanh bar vẫn dùng giá trị kẹp vì nó không vẽ được quá 100.
+  const truePercentage = total > 0 ? Math.round((spent / total) * 100) : percentage;
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex justify-between text-sm font-medium">
-        <span>{categoryName}</span>
-        <span className={cn(isOverBudget ? "text-red-500" : "text-muted-foreground")}>
-          {formatCurrencyFull(spent)} / {formatCurrencyFull(total)}
+    <div className={cn("space-y-2", isOverBudget && "border-l-2 border-(--pf-over) pl-3", className)}>
+      {/* Tên đứng riêng một dòng với phần trăm: ở 375px, cặp số tiền chiếm gần hết
+          bề ngang nên tên danh mục từng bị truncate xuống còn một chữ cái. */}
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="min-w-0 truncate text-sm font-medium">{categoryName}</span>
+        <span
+          className={cn(
+            "pf-mono shrink-0 text-[11px] tracking-[0.1em]",
+            isOverBudget ? "font-semibold text-(--pf-over-ink)" : "text-muted-foreground"
+          )}
+        >
+          {truePercentage}%
         </span>
       </div>
-      <Progress
-        value={Math.min(percentage, 100)}
-        // We might need to override the indicator color if Shadcn Progress component allows class passing to indicator
-        // Default Shadcn Progress accesses `Indicator` implicitly. 
-        // We can wrap it or modify `components/ui/progress.tsx`.
-        // Let's assume standard usage first. Standard is usually "primary".
-        // To change color per-instance, we might need a custom class on the Indicator?
-        // Let's pass a className to Progress, assuming we can style it via CSS variables or utility classes?
-        // Actually, Shadcn Progress usually uses `bg-primary` for the indicator.
-        // We can try to override it.
-        className={cn("h-2", "w-full")}
-        indicatorClassName={indicatorColor} // We need to check if Progress accepts this prop. If not, we might need to modify Progress.
-      />
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>{percentage}%</span>
-        {isOverBudget && <span className="text-red-500 font-medium">Vượt quá ngân sách</span>}
+      <div className="relative">
+        <Progress
+          value={Math.min(percentage, 100)}
+          className="h-2 w-full rounded-none"
+          indicatorClassName={cn(indicatorColor, "rounded-none")}
+        />
+        {/* Vạch cắt ở mép phải: thanh đã đỏ kín nên một nút đỏ nữa sẽ tàng hình,
+            phải chừa khe màu nền để đọc ra là "bị cắt, còn tiếp". */}
+        {isOverBudget && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-[5px] border-l-2 border-card bg-(--pf-over)"
+          />
+        )}
+      </div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <span className={cn("pf-mono text-[13px]", isOverBudget ? "text-(--pf-over-ink)" : "text-muted-foreground")}>
+          {formatCurrency(spent)} / {formatCurrency(total)}
+        </span>
+        {isOverBudget && (
+          <span className="pf-mono text-[11px] font-medium tracking-[0.1em] text-(--pf-over-ink) uppercase">
+            Vượt quá ngân sách
+          </span>
+        )}
       </div>
     </div>
   );

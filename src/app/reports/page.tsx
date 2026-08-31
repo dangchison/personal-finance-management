@@ -1,12 +1,20 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getSixMonthTrend, getMonthlySummary, getCategoryStats } from "@/actions/analytics";
+import {
+  getSixMonthTrend,
+  getMonthlySummary,
+  getCategoryStats,
+  getDailyStats,
+  getYearlyComparison,
+} from "@/actions/analytics";
 import { getFamilyMembers } from "@/actions/family";
 import { ReportFilters } from "@/components/reports/report-filters";
 import { RecentTrendChart } from "@/components/charts/recent-trend";
+import { DailyCashflowChart } from "@/components/charts/daily-cashflow";
+import { YearlyComparisonChart } from "@/components/charts/yearly-comparison";
 import { SpendingAnalysis } from "@/components/reports/spending-analysis";
-import { getAppMonthRange, parseDateParam } from "@/lib/app-time";
+import { getAppDateParts, getAppMonthRange, parseDateParam } from "@/lib/app-time";
 import { WorkspaceLayout } from "@/components/layout/workspace-layout";
 
 export default async function ReportsPage({
@@ -35,36 +43,45 @@ export default async function ReportsPage({
   const endDate = parseDateParam(toParam) || currentMonthRange.end;
 
   // Fetch all necessary data in parallel
-  const [monthlySummary, categoryStats, familyMembers, sixMonthTrend] = await Promise.all([
-    getMonthlySummary(startDate, endDate, scope),
-    getCategoryStats(startDate, endDate, scope),
-    getFamilyMembers(),
-    getSixMonthTrend(scope),
-  ]);
+  const [monthlySummary, categoryStats, familyMembers, sixMonthTrend, dailyStats, yearlyComparison] =
+    await Promise.all([
+      getMonthlySummary(startDate, endDate, scope),
+      getCategoryStats(startDate, endDate, scope),
+      getFamilyMembers(),
+      getSixMonthTrend(scope),
+      getDailyStats(startDate, endDate, scope),
+      getYearlyComparison(scope),
+    ]);
+
+  const currentYear = getAppDateParts(new Date()).year;
 
   const hasFamily = familyMembers.length > 0;
 
   return (
     <WorkspaceLayout
       withPanel={false}
-      maxWidthClassName="max-w-6xl"
     >
-      <div className="space-y-6">
+      <div className="space-y-4">
         <ReportFilters
           initialScope={scope}
           hasFamily={hasFamily}
+          initialFrom={startDate}
         />
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6">
-          {/* Spending Analysis (Top) */}
+        {/* Giữ các Panel rời nhau thay vì gộp gap-px: plaque khoét viền trên
+            nên mạch thép 1px dùng chung sẽ đọc ra như một lỗ thủng. */}
+        <div className="grid grid-cols-1 gap-4">
           <SpendingAnalysis
             summary={monthlySummary}
             categories={categoryStats}
           />
 
-          {/* Trend Chart (Bottom) */}
-          <RecentTrendChart data={sixMonthTrend || []} />
+          <DailyCashflowChart data={dailyStats || []} />
+
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <RecentTrendChart data={sixMonthTrend || []} />
+            <YearlyComparisonChart data={yearlyComparison || []} currentYear={currentYear} />
+          </div>
         </div>
       </div>
     </WorkspaceLayout>

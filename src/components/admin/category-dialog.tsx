@@ -120,7 +120,7 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Tên danh mục</FormLabel>
+                                    <FormLabel className="pf-mono text-[11px] tracking-[0.14em] uppercase">Tên danh mục</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Ví dụ: Ăn uống, Lương..." {...field} />
                                     </FormControl>
@@ -134,7 +134,7 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
                             name="type"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Loại giao dịch</FormLabel>
+                                    <FormLabel className="pf-mono text-[11px] tracking-[0.14em] uppercase">Loại giao dịch</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
@@ -152,10 +152,10 @@ export function CategoryDialog({ open, onOpenChange, category }: CategoryDialogP
                         />
 
                         <DialogFooter className="pt-4">
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+                            <Button type="button" variant="outline" className="rounded-sm" onClick={() => onOpenChange(false)} disabled={loading}>
                                 Hủy
                             </Button>
-                            <Button type="submit" disabled={loading}>
+                            <Button type="submit" className="rounded-sm" disabled={loading}>
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {category ? "Lưu thay đổi" : "Tạo danh mục"}
                             </Button>
