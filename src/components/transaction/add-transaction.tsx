@@ -32,6 +32,13 @@ interface AddTransactionProps {
   onTransactionAdded?: () => void;
 }
 
+/**
+ * Trigger mặc định. Trên mobile ẩn hẳn vì đã có FAB ở thanh đáy — hai khối
+ * hành động cùng lúc là phá Luật một nguồn sáng.
+ */
+const triggerClass =
+  "hidden h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-sm border border-(--pf-expense) bg-(--pf-expense) text-(--pf-on-signal) transition-opacity hover:opacity-90 lg:flex";
+
 export function AddTransaction({ categories, initialData, open: controlledOpen, onOpenChange: setControlledOpen, onTransactionAdded }: AddTransactionProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [, startTransition] = useTransition();
@@ -63,9 +70,9 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
         <Dialog open={open} onOpenChange={handleOpenChange}>
         {!isControlled && (
           <DialogTrigger asChild>
-            <button className="relative h-20 rounded-xl border border-blue-400 bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-400 flex flex-col items-center justify-center gap-2 cursor-pointer">
-              <Plus className="h-5 w-5 relative z-10" />
-              <span className="text-xs font-medium relative z-10">Thêm mới</span>
+            <button className={triggerClass}>
+              <Plus className="h-4 w-4" />
+              <span className="pf-display text-sm font-semibold tracking-wide">Ghi giao dịch</span>
             </button>
           </DialogTrigger>
         )}
@@ -75,9 +82,9 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>{initialData ? "Chỉnh sửa chi tiêu" : "Thêm chi tiêu"}</DialogTitle>
+            <DialogTitle>{initialData ? "Sửa giao dịch" : "Ghi giao dịch"}</DialogTitle>
             <DialogDescription>
-              {initialData ? "Cập nhật thông tin chi tiêu." : "Nhập chi tiết về khoản chi tiêu của bạn."}
+              {initialData ? "Sửa lại thông tin của khoản này." : "Chọn tiền ra hay tiền vào, rồi nhập số tiền."}
             </DialogDescription>
           </DialogHeader>
           <TransactionForm categories={categories} initialData={initialData} onSuccess={onSuccess} />
@@ -90,9 +97,9 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
     <Sheet open={open} onOpenChange={handleOpenChange}>
       {!isControlled && (
         <SheetTrigger asChild>
-          <button className="relative h-20 rounded-xl border border-blue-400 bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-400 flex flex-col items-center justify-center gap-2 cursor-pointer">
-            <Plus className="h-5 w-5 relative z-10" />
-            <span className="text-xs font-medium relative z-10">Thêm mới</span>
+          <button className={triggerClass}>
+            <Plus className="h-4 w-4" />
+            <span className="pf-display text-sm font-semibold tracking-wide">Ghi giao dịch</span>
           </button>
         </SheetTrigger>
       )}
@@ -103,9 +110,9 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
         onInteractOutside={(e) => e.preventDefault()}
       >
         <SheetHeader>
-          <SheetTitle>{initialData ? "Chỉnh sửa chi tiêu" : "Thêm chi tiêu"}</SheetTitle>
+          <SheetTitle>{initialData ? "Sửa giao dịch" : "Ghi giao dịch"}</SheetTitle>
           <SheetDescription>
-            {initialData ? "Cập nhật thông tin chi tiêu." : "Nhập chi tiết về khoản chi tiêu của bạn."}
+            {initialData ? "Sửa lại thông tin của khoản này." : "Chọn tiền ra hay tiền vào, rồi nhập số tiền."}
           </SheetDescription>
         </SheetHeader>
         <TransactionForm categories={categories} initialData={initialData} onSuccess={onSuccess} />

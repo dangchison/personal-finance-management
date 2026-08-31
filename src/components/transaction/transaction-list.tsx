@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
 import { TransactionWithCategory } from "@/actions/transaction";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionGroup } from "./transaction-group";
+import { GROUP_GAP, GROUP_HEADER_H, ROW_H, getGroupHeight } from "./transaction-metrics";
+import { RingMark } from "@/components/brand/ring-mark";
 import { useRef, useMemo, useEffect, useState } from "react";
 import { isSameDay } from "date-fns";
 import { VariableSizeList as List } from 'react-window';
@@ -77,18 +78,21 @@ export function TransactionList({
     }
   }, [isFullPage]);
 
-  // Estimate item height based on number of transactions in group
-  const getItemSize = (index: number) => {
-    const group = groupedTransactions[index];
-    // Header: ~60px, Each transaction: ~80px, Bottom margin: 16px
-    return 60 + (group.transactions.length * 80) + 16;
-  };
+  // Chiều cao lấy từ hợp đồng chung với component, không ước lượng
+  const getItemSize = (index: number) =>
+    getGroupHeight(groupedTransactions[index].transactions.length);
+
+  // VariableSizeList cache offset theo index; đổi bộ lọc là nhóm khác đi nhưng
+  // cache cũ vẫn được dùng → dòng chồng lấn hoặc chừa khoảng trống.
+  useEffect(() => {
+    listRef.current?.resetAfterIndex(0, true);
+  }, [groupedTransactions]);
 
   // Row renderer for react-window
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const group = groupedTransactions[index];
     return (
-      <div style={style}>
+      <div style={{ ...style, paddingBottom: GROUP_GAP }}>
         <TransactionGroup
           date={group.date}
           transactions={group.transactions}
@@ -102,30 +106,42 @@ export function TransactionList({
 
   if (transactions.length === 0 && !isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center p-6 sm:p-8 text-center border rounded-lg bg-muted/20 min-h-[300px] h-full">
-        <div className="bg-muted p-3 sm:p-4 rounded-full mb-4">
-          <ArrowUpRight className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground opacity-50" />
+      <div className="flex h-full min-h-[300px] flex-col items-center justify-center gap-4 border border-border bg-card p-6 text-center sm:p-8">
+        <RingMark className="h-10 w-10 opacity-60" />
+        <div className="space-y-1">
+          <h3 className="pf-display text-base font-bold text-foreground sm:text-lg">
+            Chưa có giao dịch nào
+          </h3>
+          <p className="mx-auto max-w-[260px] text-xs text-muted-foreground sm:text-sm">
+            Bắt đầu ghi lại chi tiêu và thu nhập của bạn để quản lý tài chính tốt hơn.
+          </p>
         </div>
-        <h3 className="font-semibold text-base sm:text-lg">Chưa có giao dịch nào</h3>
-        <p className="text-muted-foreground text-xs sm:text-sm mt-1 max-w-[250px] sm:max-w-xs">
-          Bắt đầu ghi lại chi tiêu và thu nhập của bạn để quản lý tài chính tốt hơn.
-        </p>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-center space-x-4 p-3 border rounded-lg h-[80px]">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-[200px]" />
-              <Skeleton className="h-3 w-[150px]" />
+      <div className="border border-border bg-card">
+        <div
+          style={{ height: GROUP_HEADER_H }}
+          className="flex items-center border-b border-border px-3 sm:px-4"
+        >
+          <Skeleton className="h-3 w-24" />
+        </div>
+        <div className="divide-y divide-border">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              style={{ height: ROW_H }}
+              className="flex items-center gap-3 px-3 sm:px-4"
+            >
+              <Skeleton className="h-3 w-12 shrink-0" />
+              <Skeleton className="h-3 flex-1" />
+              <Skeleton className="h-3 w-20 shrink-0" />
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }

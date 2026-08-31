@@ -46,7 +46,6 @@ export default async function TransactionsPage({
 
   return (
     <WorkspaceLayout
-      maxWidthClassName="max-w-6xl"
       fullHeight
       contentInnerClassName="h-full p-4 sm:p-5"
     >

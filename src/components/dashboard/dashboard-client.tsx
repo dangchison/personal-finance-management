@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Filter, PanelRightOpen, PanelRightClose, ChartPie } from "lucide-react";
@@ -8,16 +8,16 @@ import { AddTransaction } from "@/components/transaction/add-transaction";
 import { TransactionList } from "@/components/transaction/transaction-list";
 import { Category } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { WelcomeScreen } from "@/components/auth/welcome-screen";
 import { CountUpAnimation } from "@/components/ui/count-up-animation";
 import { TransactionDetailsModal } from "@/components/transaction/transaction-details-modal";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
-import { StatsCard } from "./stats-card";
+import { InsightsPanel } from "./insights-panel";
+import { SteelGrid, Readout } from "@/components/ui/panel";
+import { formatCurrency } from "@/lib/format-currency";
 import { SpendingPieChart } from "./spending-pie-chart";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionFilters } from "@/components/transaction/transaction-filters";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -31,11 +31,6 @@ export interface BudgetProgress {
 }
 
 interface DashboardClientProps {
-  user: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
   categories: Category[];
   transactions: TransactionWithCategory[];
   stats: {
@@ -49,27 +44,16 @@ interface DashboardClientProps {
   categoryStats: { name: string; value: number }[];
 }
 
-export function DashboardClient({ user, categories, transactions, stats, familyMembers = [], budgetProgress = [], categoryStats = [] }: DashboardClientProps) {
+export function DashboardClient({ categories, transactions, stats, familyMembers = [], budgetProgress = [], categoryStats = [] }: DashboardClientProps) {
   const router = useRouter();
   const [editingTransaction, setEditingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [viewingTransaction, setViewingTransaction] = useState<TransactionWithCategory | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
   const [showInsightsDesktop, setShowInsightsDesktop] = useState(true);
   const [mobileInsightsOpen, setMobileInsightsOpen] = useState(false);
   const [isRefreshingTransactions, startRefreshTransition] = useTransition();
-
-  // Check localStorage only on client-side to avoid hydration errors
-  useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    if (!hasSeenWelcome) {
-      localStorage.setItem('hasSeenWelcome', 'true');
-      // Use setTimeout to avoid synchronous state update in effect
-      setTimeout(() => setShowWelcome(true), 0);
-    }
-  }, []);
   // Use URL filters hook
   const { updateFilters, updateDateRange, dateRange, isPending, searchParams } = useUrlFilters("/dashboard");
 
@@ -146,32 +130,39 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
 
   return (
     <>
-      {showWelcome && (
-        <WelcomeScreen
-          userName={user.name}
-          onComplete={() => setShowWelcome(false)}
-        />
-      )}
-      <div className="w-full lg:h-full">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:h-full">
-          <aside className="space-y-4 lg:col-span-3 lg:h-full lg:overflow-y-auto lg:pr-1">
-            <div className="grid grid-cols-1 gap-3">
-              <StatsCard title="Chi tiêu tháng này">
-                <div className="text-2xl font-semibold tabular-nums text-red-600 dark:text-red-400">
-                  <CountUpAnimation end={stats.expense} /> ₫
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-xs text-muted-foreground">So với tháng trước:</p>
-                  <span className={cn(
-                    "text-xs font-medium",
-                    isIncrease ? "text-red-500" : isDecrease ? "text-emerald-500" : "text-muted-foreground"
-                  )}>
-                    {expensePercent > 0 ? "+" : ""}{expensePercent}%
-                  </span>
-                </div>
-              </StatsCard>
-
-            </div>
+      <div className="h-full w-full">
+        <div className="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-px lg:border lg:border-border lg:bg-border">
+          <aside className="shrink-0 space-y-4 lg:col-span-3 lg:h-full lg:overflow-y-auto lg:bg-background lg:p-4">
+            {/* Hàng đo: lưới thép, số mono theo mã màu dữ liệu */}
+            <SteelGrid className="grid-cols-2 lg:grid-cols-1">
+              <Readout
+                label="Chi tiêu tháng này"
+                tone="var(--pf-expense-ink)"
+                className="col-span-2 lg:col-span-1"
+              >
+                <CountUpAnimation end={stats.expense} formatNumber={formatCurrency} />
+              </Readout>
+              <Readout
+                label="So với tháng trước"
+                tone={
+                  isIncrease
+                    ? "var(--pf-over-ink)"
+                    : isDecrease
+                      ? "var(--pf-ok-ink)"
+                      : undefined
+                }
+              >
+                {expensePercent > 0 ? "+" : ""}{expensePercent}%
+              </Readout>
+              <Readout
+                label="Ngân sách còn lại"
+                tone={
+                  remainingBudget < 0 ? "var(--pf-over-ink)" : "var(--pf-budget-ink)"
+                }
+              >
+                {formatCurrency(remainingBudget)}
+              </Readout>
+            </SteelGrid>
 
             <div className="grid grid-cols-1 gap-3">
               <AddTransaction
@@ -183,12 +174,12 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
 
           <section
             className={cn(
-              "flex flex-col lg:h-full lg:overflow-hidden gap-4",
+              "flex min-h-0 flex-col gap-4 overflow-hidden lg:bg-background lg:p-4",
               showInsightsDesktop ? "lg:col-span-6" : "lg:col-span-9"
             )}
           >
             <div className="flex items-center justify-between gap-2 border-b border-border/70 pb-3">
-              <h2 className="text-lg font-semibold">Giao dịch tháng hiện tại</h2>
+              <h2 className="pf-display text-lg font-bold text-foreground">Giao dịch tháng hiện tại</h2>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -334,63 +325,32 @@ export function DashboardClient({ user, categories, transactions, stats, familyM
           </section>
 
           {showInsightsDesktop && (
-            <aside className="hidden lg:flex lg:col-span-3 lg:h-full lg:overflow-y-auto lg:pl-1 flex-col gap-4">
-              <Card className="border border-border/80 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Insights tháng này</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Ngân sách còn lại</span>
-                    <span className="font-semibold tabular-nums"><CountUpAnimation end={remainingBudget} /> ₫</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Mức sử dụng ngân sách</span>
-                    <span className="font-semibold">{budgetUsage}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Danh mục vượt ngân sách</span>
-                    <span className={cn("font-semibold", overBudgetCount > 0 ? "text-red-600" : "text-emerald-600")}>
-                      {overBudgetCount}
-                    </span>
-                  </div>
-                  <Button variant="outline" asChild className="w-full mt-2">
-                    <Link href="/settings?tab=budget">Quản lý ngân sách</Link>
-                  </Button>
-                </CardContent>
-              </Card>
+            <aside className="hidden flex-col gap-4 lg:col-span-3 lg:flex lg:h-full lg:overflow-y-auto lg:bg-background lg:p-4">
+              <InsightsPanel
+                title="Insights tháng này"
+                showManageLink
+                remainingBudget={remainingBudget}
+                budgetUsage={budgetUsage}
+                overBudgetCount={overBudgetCount}
+              />
               <SpendingPieChart data={categoryStats} />
             </aside>
           )}
         </div>
 
         <Sheet open={mobileInsightsOpen} onOpenChange={setMobileInsightsOpen}>
-          <SheetContent side="bottom" className="max-h-[90vh] rounded-t-2xl overflow-y-auto">
+          <SheetContent side="bottom" className="max-h-[90vh] overflow-y-auto">
             <SheetHeader>
               <SheetTitle>Insights tháng này</SheetTitle>
             </SheetHeader>
             <div className="space-y-4 px-4 pb-6">
-              <Card className="border border-border/80 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Tổng quan ngân sách</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Ngân sách còn lại</span>
-                    <span className="font-semibold tabular-nums"><CountUpAnimation end={remainingBudget} /> ₫</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Mức sử dụng ngân sách</span>
-                    <span className="font-semibold">{budgetUsage}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Danh mục vượt ngân sách</span>
-                    <span className={cn("font-semibold", overBudgetCount > 0 ? "text-red-600" : "text-emerald-600")}>
-                      {overBudgetCount}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+              <InsightsPanel
+                title="Tổng quan ngân sách"
+                showManageLink
+                remainingBudget={remainingBudget}
+                budgetUsage={budgetUsage}
+                overBudgetCount={overBudgetCount}
+              />
               <SpendingPieChart data={categoryStats} />
             </div>
           </SheetContent>

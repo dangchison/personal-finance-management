@@ -42,11 +42,9 @@ export default async function DashboardPage({
   return (
     <WorkspaceLayout
       withPanel={false}
-      maxWidthClassName="max-w-[1400px]"
       fullHeight
     >
       <DashboardClient
-        user={session.user || {}}
         categories={categories}
         transactions={transactions}
         stats={stats}

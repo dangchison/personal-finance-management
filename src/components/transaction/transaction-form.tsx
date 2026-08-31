@@ -87,6 +87,11 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
     name: "paymentMethod",
   });
 
+  const type = useWatch({
+    control: form.control,
+    name: "type",
+  });
+
   useEffect(() => {
     if (initialData) {
       form.reset({
@@ -101,7 +106,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
     }
   }, [initialData, form]);
 
-  const filteredCategories = categories.filter((c) => c.type === "EXPENSE");
+  const filteredCategories = categories.filter((c) => c.type === type);
 
   async function onSubmit(values: TransactionFormValues) {
     setLoading(true);
@@ -116,7 +121,13 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success(initialData ? "Đã cập nhật chi tiêu!" : "Đã thêm chi tiêu!");
+      toast.success(
+        initialData
+          ? "Đã cập nhật giao dịch"
+          : values.type === "INCOME"
+            ? "Đã ghi khoản tiền vào"
+            : "Đã ghi khoản chi"
+      );
       if (!initialData) {
         form.reset();
       }
@@ -128,16 +139,36 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-        {/* Hidden Type Field - Defaulting to EXPENSE */}
-        <div className="hidden">
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <Input {...field} value="EXPENSE" type="hidden" />
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Loại giao dịch</FormLabel>
+              <FormControl>
+                <Tabs
+                  value={field.value}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    // Danh mục cũ thuộc loại khác nên phải chọn lại
+                    form.setValue("categoryId", "", { shouldValidate: false });
+                  }}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="EXPENSE" className="data-[state=active]:text-red-600 dark:data-[state=active]:text-red-400">
+                      Tiền ra
+                    </TabsTrigger>
+                    <TabsTrigger value="INCOME" className="data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400">
+                      Tiền vào
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -183,11 +214,19 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {filteredCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
+                  {filteredCategories.length === 0 ? (
+                    <div className="px-3 py-3 text-sm text-muted-foreground">
+                      {type === "INCOME"
+                        ? "Chưa có danh mục tiền vào. Thêm ở Cài đặt → Danh mục hệ thống."
+                        : "Chưa có danh mục tiền ra. Thêm ở Cài đặt → Danh mục hệ thống."}
+                    </div>
+                  ) : (
+                    filteredCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -236,7 +275,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
               <FormLabel>Ghi chú</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Ví dụ: Ăn trưa, Tiền xăng..."
+                  placeholder={type === "INCOME" ? "Ví dụ: Lương tháng 8, tiền thưởng..." : "Ví dụ: Ăn trưa, tiền xăng..."}
                   {...field}
                   disabled={loading}
                   rows={3}
@@ -312,7 +351,7 @@ export function TransactionForm({ categories, initialData, onSuccess }: Transact
 
         <div className="pt-4">
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Đang lưu..." : (initialData ? "Cập nhật" : "Lưu chi tiêu")}
+            {loading ? "Đang lưu..." : initialData ? "Cập nhật" : type === "INCOME" ? "Lưu khoản thu" : "Lưu khoản chi"}
           </Button>
         </div>
       </form>

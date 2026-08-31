@@ -1,12 +1,11 @@
 "use client";
 
-import { format } from "date-fns";
+import { format, isToday, isYesterday } from "date-fns";
 import { vi } from "date-fns/locale";
-import { isToday, isYesterday } from "date-fns";
 import { TransactionWithCategory } from "@/actions/transaction";
 import { TransactionItem } from "./transaction-item";
+import { GROUP_HEADER_H } from "./transaction-metrics";
 
-// Helper to format date header
 function formatDateHeader(date: Date): string {
   if (isToday(date)) return "Hôm nay";
   if (isYesterday(date)) return "Hôm qua";
@@ -21,18 +20,23 @@ interface TransactionGroupProps {
   readOnly?: boolean;
 }
 
+/**
+ * Một ngày là một panel của sổ: khung hairline, header ngày, các dòng chia bằng
+ * đường kẻ. Không sticky — mỗi nhóm là một box `position:absolute` của
+ * react-window nên sticky không có tác dụng ở đây.
+ */
 export function TransactionGroup({ date, transactions, onEdit, onView, readOnly = false }: TransactionGroupProps) {
   return (
-    <div className="space-y-2">
-      {/* Date Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 rounded-md">
-        <h3 className="text-sm font-semibold text-muted-foreground">
-          {formatDateHeader(date)}
-        </h3>
+    <div className="border border-border bg-card">
+      <div
+        style={{ height: GROUP_HEADER_H }}
+        className="pf-mono flex items-center justify-between border-b border-border px-3 text-[10px] tracking-[0.14em] text-muted-foreground uppercase sm:px-4"
+      >
+        <span>{formatDateHeader(date)}</span>
+        <span>{transactions.length} khoản</span>
       </div>
 
-      {/* Transactions for this date */}
-      <div className="space-y-2">
+      <div className="divide-y divide-border">
         {transactions.map((transaction) => (
           <TransactionItem
             key={transaction.id}

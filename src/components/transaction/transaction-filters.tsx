@@ -53,7 +53,7 @@ export function TransactionFilters({
             variant="outline"
             size="sm"
             onClick={onToggleFilters}
-            className="w-full sm:w-auto h-9"
+            className="h-11 w-full sm:h-9 sm:w-auto"
           >
             <Filter className="h-4 w-4 mr-2" />
             {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
@@ -66,7 +66,7 @@ export function TransactionFilters({
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full animate-in fade-in slide-in-from-top-2">
           {/* Category Filter */}
           <Select value={categoryId} onValueChange={onCategoryChange}>
-            <SelectTrigger className="w-full sm:w-[160px] h-9">
+            <SelectTrigger className="h-11 w-full rounded-sm sm:h-9 sm:w-[160px]">
               <SelectValue placeholder="Danh mục" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
@@ -80,7 +80,7 @@ export function TransactionFilters({
           {/* Member Filter (Family Only) */}
           {scope === 'family' && onMemberChange && (
             <Select value={memberId} onValueChange={onMemberChange}>
-              <SelectTrigger className="w-full sm:w-[160px] h-9">
+              <SelectTrigger className="h-11 w-full rounded-sm sm:h-9 sm:w-[160px]">
                 <SelectValue placeholder="Thành viên" />
               </SelectTrigger>
               <SelectContent>

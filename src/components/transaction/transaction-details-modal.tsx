@@ -1,9 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { TransactionWithCategory } from "@/actions/transaction";
-import { Edit, Calendar, Tag, Hash, ArrowDownLeft, ArrowUpRight, Wallet, CreditCard } from "lucide-react";
+import { TransactionWithCategory, deleteTransaction } from "@/actions/transaction";
+import { Edit, Calendar, Tag, Hash, ArrowDownLeft, ArrowUpRight, Wallet, CreditCard, Trash2, Loader2 } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -27,6 +41,7 @@ interface TransactionDetailsModalProps {
   onOpenChange: (open: boolean) => void;
   onEdit: () => void;
   readOnly?: boolean;
+  onDeleted?: () => void;
 }
 
 export function TransactionDetailsModal({
@@ -35,19 +50,34 @@ export function TransactionDetailsModal({
   onOpenChange,
   onEdit,
   readOnly = false,
+  onDeleted,
 }: TransactionDetailsModalProps) {
-  const [isDesktop, setIsDesktop] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  const [, startTransition] = useTransition();
 
+  async function handleDelete() {
+    if (!transaction) return;
+    setDeleting(true);
+    const result = await deleteTransaction(transaction.id);
+    setDeleting(false);
 
-  useEffect(() => {
-    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
-    checkDesktop();
-    window.addEventListener("resize", checkDesktop);
-    return () => window.removeEventListener("resize", checkDesktop);
-  }, []);
+    if (result.error) {
+      toast.error(result.error === "Unauthorized" ? "Bạn không có quyền xoá khoản này" : "Xoá không được, thử lại nhé");
+      return;
+    }
+
+    toast.success("Đã xoá giao dịch");
+    onOpenChange(false);
+    if (onDeleted) {
+      onDeleted();
+      return;
+    }
+    startTransition(() => router.refresh());
+  }
 
   if (!transaction) return null;
-
 
 
   const content = (
@@ -95,7 +125,7 @@ export function TransactionDetailsModal({
 
         <div className="flex items-center gap-3">
           <Tag className="h-5 w-5 text-muted-foreground" />
-          <div className="px-3 py-1 rounded-md bg-primary/10 text-primary font-medium">
+          <div className="pf-mono rounded-sm border border-border px-2.5 py-1 text-xs tracking-wide text-foreground uppercase">
             {transaction.category.name}
           </div>
         </div>
@@ -146,16 +176,45 @@ export function TransactionDetailsModal({
         )}
       </div>
 
-      {/* Edit Button at Bottom */}
+      {/* Hành động */}
       {!readOnly && (
-        <Button
-          onClick={onEdit}
-          className="w-full mt-6"
-          variant="default"
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          Chỉnh sửa giao dịch
-        </Button>
+        <div className="mt-6 space-y-2">
+          <Button onClick={onEdit} className="h-11 w-full" variant="outline">
+            <Edit className="mr-2 h-4 w-4" />
+            Sửa giao dịch
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                disabled={deleting}
+                className="h-11 w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                {deleting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-2 h-4 w-4" />
+                )}
+                Xoá giao dịch
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Xoá khoản này?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {transaction.description} · {formatCurrency(transaction.amount)}. Khoản này sẽ biến mất khỏi danh sách và các báo cáo.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Giữ lại</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                  Xoá
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       )}
     </div>
   );

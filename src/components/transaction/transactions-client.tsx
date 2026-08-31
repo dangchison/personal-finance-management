@@ -13,6 +13,7 @@ import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { Button } from "@/components/ui/button";
 import { FilterX, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TAB_LIST, TAB_TRIGGER } from "@/lib/tab-styles";
 
 // Member interface based on common schema
 interface Member {
@@ -104,9 +105,9 @@ export function TransactionsClient({
         {familyMembers.length > 0 && (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             <Tabs value={scope} onValueChange={handleTabChange} className="w-full sm:w-auto">
-              <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
-                <TabsTrigger value="personal">Giao dịch cá nhân</TabsTrigger>
-                <TabsTrigger value="family">Giao dịch gia đình</TabsTrigger>
+              <TabsList className={cn(TAB_LIST, "grid w-full grid-cols-2 sm:w-[400px]")}>
+                <TabsTrigger value="personal" className={TAB_TRIGGER}>Giao dịch cá nhân</TabsTrigger>
+                <TabsTrigger value="family" className={TAB_TRIGGER}>Giao dịch gia đình</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -114,7 +115,7 @@ export function TransactionsClient({
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="w-full sm:w-auto h-9"
+              className="h-11 w-full sm:h-9 sm:w-auto"
             >
               <Filter className="h-4 w-4 mr-2" />
               {showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
@@ -173,17 +174,6 @@ export function TransactionsClient({
         onEdit={handleEditFromView}
         readOnly={scope === 'family' || (viewingTransaction ? !isSameMonth(new Date(viewingTransaction.date), new Date()) : false)}
       />
-
-      <style jsx global>{`
-        @keyframes progress-indeterminate {
-          0% { transform: translateX(-100%) scaleX(0.2); }
-          50% { transform: translateX(0) scaleX(0.5); }
-          100% { transform: translateX(100%) scaleX(0.2); }
-        }
-        .animate-progress-indeterminate {
-          animation: progress-indeterminate 1.5s infinite linear;
-        }
-      `}</style>
     </div>
   );
 }
