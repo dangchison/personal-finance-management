@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { NextAuthOptions } from "next-auth";
 import { Adapter } from "next-auth/adapters";
+import { AUTH_ERROR } from "@/lib/auth-errors";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
@@ -17,29 +18,44 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) {
-          throw new Error("Invalid credentials");
+          throw new Error(AUTH_ERROR.INVALID_CREDENTIALS);
         }
 
-        const user = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: credentials.username },
-              { username: credentials.username }
-            ]
-          },
-        });
+        let user;
+        try {
+          user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { email: credentials.username },
+                { username: credentials.username }
+              ]
+            },
+          });
+        } catch (error) {
+          // Mất DB, sai cấu hình, timeout... chỉ log ở server rồi trả mã chung
+          console.error("[auth] không truy vấn được user:", error);
+          throw new Error(AUTH_ERROR.SERVICE_UNAVAILABLE);
+        }
 
+        // Cùng một câu trả lời cho "không có user" và "sai mật khẩu",
+        // để không lộ email nào đã đăng ký
         if (!user || !user.passwordHash) {
-          throw new Error("Invalid credentials");
+          throw new Error(AUTH_ERROR.INVALID_CREDENTIALS);
         }
 
-        const isPasswordCorrect = await bcrypt.compare(
-          credentials.password,
-          user.passwordHash
-        );
+        let isPasswordCorrect = false;
+        try {
+          isPasswordCorrect = await bcrypt.compare(
+            credentials.password,
+            user.passwordHash
+          );
+        } catch (error) {
+          console.error("[auth] so khớp mật khẩu lỗi:", error);
+          throw new Error(AUTH_ERROR.SERVICE_UNAVAILABLE);
+        }
 
         if (!isPasswordCorrect) {
-          throw new Error("Invalid credentials");
+          throw new Error(AUTH_ERROR.INVALID_CREDENTIALS);
         }
 
         return {
