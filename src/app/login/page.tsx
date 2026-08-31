@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { authErrorMessage } from "@/lib/auth-errors";
 
 function LoginForm() {
   const router = useRouter();
@@ -36,12 +37,13 @@ function LoginForm() {
     });
 
     if (res?.error) {
-      toast.error(res.error);
+      // res.error là mã lỗi, không phải câu để hiện thẳng cho người dùng
+      toast.error(authErrorMessage(res.error));
       setLoading(false);
       return;
     }
 
-    toast.success("Đăng nhập thành công!");
+    toast.success("Xong, mở sổ đây");
     router.replace(callbackUrl);
     router.refresh();
   }
@@ -49,24 +51,25 @@ function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
-        <Label htmlFor="username" className="text-slate-700">
-          Tên đăng nhập hoặc email
+        <Label htmlFor="username" className="pf-mono text-[11px] tracking-[0.14em] text-(--text-steel)">
+          TÊN ĐĂNG NHẬP HOẶC EMAIL
         </Label>
         <Input
           id="username"
           name="username"
           type="text"
-          placeholder="admin hoặc john@example.com"
+          placeholder="ten_dang_nhap hoặc ban@email.com"
           required
           autoCapitalize="none"
+          autoComplete="username"
           disabled={loading}
-          className="h-11 border-slate-300 bg-slate-50/60 text-slate-900 placeholder:text-slate-400 focus:border-blue-500"
+          className="h-12 rounded-sm border-(--steel) bg-(--vacuum) text-(--text-bright) placeholder:text-(--text-steel)/60"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password" className="text-slate-700">
-          Mật khẩu
+        <Label htmlFor="password" className="pf-mono text-[11px] tracking-[0.14em] text-(--text-steel)">
+          MẬT KHẨU
         </Label>
         <div className="relative">
           <Input
@@ -74,13 +77,15 @@ function LoginForm() {
             name="password"
             type={showPassword ? "text" : "password"}
             required
+            autoComplete="current-password"
             disabled={loading}
-            className="h-11 border-slate-300 bg-slate-50/60 pr-11 text-slate-900 focus:border-blue-500"
+            className="h-12 rounded-sm border-(--steel) bg-(--vacuum) pr-12 text-(--text-bright)"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-700"
+            className="absolute top-1/2 right-1 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-(--text-steel) transition-colors hover:text-(--track-yellow)"
+            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             tabIndex={-1}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -95,26 +100,30 @@ function LoginForm() {
           onCheckedChange={(checked) => setRememberMe(checked === true)}
           disabled={loading}
         />
-        <Label htmlFor="remember" className="cursor-pointer text-sm text-slate-600">
-          Ghi nhớ đăng nhập
+        <Label htmlFor="remember" className="cursor-pointer text-sm text-(--text-steel)">
+          Giữ tôi đăng nhập trên máy này
         </Label>
       </div>
 
-      <Button type="submit" disabled={loading} className="h-11 w-full bg-blue-600 text-white hover:bg-blue-500">
+      <Button
+        type="submit"
+        disabled={loading}
+        className="pf-display h-12 w-full rounded-sm bg-(--track-yellow) text-base font-bold tracking-wide text-(--vacuum) hover:bg-(--track-yellow)/90"
+      >
         {loading ? (
           <span className="inline-flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Đang đăng nhập...
+            Đang mở sổ...
           </span>
         ) : (
-          "Đăng nhập"
+          "MỞ SỔ"
         )}
       </Button>
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-(--text-steel)">
         Chưa có tài khoản?{" "}
-        <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500">
-          Đăng ký ngay
+        <Link href="/register" className="font-semibold text-(--track-yellow) hover:underline">
+          Tạo một cái, mất 1 phút
         </Link>
       </p>
     </form>
@@ -124,7 +133,7 @@ function LoginForm() {
 function LoginFormFallback() {
   return (
     <div className="flex h-40 items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-slate-500" />
+      <Loader2 className="h-6 w-6 animate-spin text-(--track-yellow)" />
     </div>
   );
 }
@@ -133,8 +142,8 @@ export default function LoginPage() {
   return (
     <AuthShell
       mode="login"
-      title="Chào mừng quay lại"
-      description="Đăng nhập để tiếp tục theo dõi giao dịch và ngân sách của bạn."
+      title="Mở sổ của bạn"
+      description="Đăng nhập để xem tháng này tiền đi đâu và ngân sách còn bao nhiêu."
     >
       <Suspense fallback={<LoginFormFallback />}>
         <LoginForm />

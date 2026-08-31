@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# trạng thái cục bộ của công cụ (index codegraph, ảnh/khảo sát của skill impeccable)
+/.codegraph/
+/.impeccable/
