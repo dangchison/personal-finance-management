@@ -3,11 +3,27 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   HỆ MÀU "MÁY DÒ DÒNG TIỀN" — ba tầng token
+   ----------------------------------------------------------------------------
+   Tầng 1 rendition : --pf-*        khai báo ở :root (giấy) / .dark (buồng) / .pf-world
+   Tầng 2 cầu nối   : --background… viết MỘT LẦN cho ":root, .pf-world"
+   Tầng 3 utility   : --color-pf-*  trong @theme inline
+
+   THỨ TỰ BỐN KHỐI DƯỚI ĐÂY LÀ LOAD-BEARING:
+     :root  →  .dark  →  .pf-world  →  cầu nối
+   .dark và :root cùng match <html> nên source order quyết định ai thắng.
+   Đảo thứ tự (hoặc để formatter sắp lại) sẽ vỡ dark mode mà không báo lỗi.
+
+   .dark chỉ match <html>, .pf-world chỉ match div của landing — không bao giờ
+   cùng match một element, nên landing luôn tối bất kể người dùng chọn theme nào.
+   ========================================================================== */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-pf-body);
+  --font-mono: var(--font-pf-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -37,6 +53,21 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Tầng 3 — màu của thế giới, dùng trực tiếp trong JSX app */
+  --color-pf-bg: var(--pf-bg);
+  --color-pf-surface: var(--pf-surface);
+  --color-pf-line: var(--pf-line);
+  --color-pf-geometry: var(--pf-geometry);
+  --color-pf-expense: var(--pf-expense);
+  --color-pf-expense-ink: var(--pf-expense-ink);
+  --color-pf-budget: var(--pf-budget);
+  --color-pf-budget-ink: var(--pf-budget-ink);
+  --color-pf-over: var(--pf-over);
+  --color-pf-over-ink: var(--pf-over-ink);
+  --color-pf-ok: var(--pf-ok);
+  --color-pf-ok-ink: var(--pf-ok-ink);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -46,31 +77,29 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* ---- TẦNG 1a: BẢN GIẤY (mặc định khi <html> không có .dark) ---------- */
 :root {
-  --radius: 0.625rem;
-  --background: #f6f7f9;
-  --foreground: #111827;
-  --card: #ffffff;
-  --card-foreground: #111827;
-  --popover: #ffffff;
-  --popover-foreground: #111827;
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --secondary: #eef2f7;
-  --secondary-foreground: #111827;
-  --muted: #f1f5f9;
-  --muted-foreground: #6b7280;
-  --accent: #eef2f7;
-  --accent-foreground: #111827;
-  --destructive: #dc2626;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #93c5fd;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;            /* GIỮ NGUYÊN: .pf-world mượn nó cho rounded-sm */
+  color-scheme: light;
+
+  --pf-bg:        #eef1f4;
+  --pf-surface:   #ffffff;
+  --pf-line:      #c8d2dc;
+  --pf-geometry:  #8a99ab;
+  --pf-subtle:    #e3e9ee;      /* nền dịu: muted / accent / secondary */
+  --pf-ink:       #55606e;
+  --pf-ink-strong:#0f1a24;
+
+  /* mỗi vai hai khe: -* cho vệt đồ hoạ, -*-ink cho chữ (đủ tương phản trên giấy) */
+  --pf-expense:    #e0a800;  --pf-expense-ink: #8a6500;
+  --pf-budget:     #1b8fc0;  --pf-budget-ink:  #0f6d95;
+  --pf-over:       #d92b2b;  --pf-over-ink:    #b31b1b;
+  --pf-ok:         #22a35d;  --pf-ok-ink:      #127a44;
+
+  /* thang "than nguội" cho donut danh mục: vàng nóng → thép nguội */
+  --pf-cat-1: #b88600; --pf-cat-2: #a37f1c; --pf-cat-3: #8d772f; --pf-cat-4: #776e3c;
+  --pf-cat-5: #616545; --pf-cat-6: #4d5b4c; --pf-cat-7: #3b5158; --pf-cat-8: #2c4356;
+
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -81,30 +110,27 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* ---- TẦNG 1b: BUỒNG CHÂN KHÔNG (app khi bật nền tối) ----------------- */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  color-scheme: dark;
+
+  --pf-bg:        #0b0f14;
+  --pf-surface:   #16202e;
+  --pf-line:      #223244;
+  --pf-geometry:  #3a5a7a;
+  --pf-subtle:    #223244;
+  --pf-ink:       #a7b3c2;
+  --pf-ink-strong:#e8eef5;
+
+  /* trong buồng tối, màu tín hiệu tự đọc được nên -ink trùng -line */
+  --pf-expense:    #ffd23a;  --pf-expense-ink: #ffd23a;
+  --pf-budget:     #35d0ff;  --pf-budget-ink:  #35d0ff;
+  --pf-over:       #ff4d4d;  --pf-over-ink:    #ff4d4d;
+  --pf-ok:         #43d17c;  --pf-ok-ink:      #43d17c;
+
+  --pf-cat-1: #ffd23a; --pf-cat-2: #efc04a; --pf-cat-3: #d9ad57; --pf-cat-4: #bf9a62;
+  --pf-cat-5: #a2886b; --pf-cat-6: #83776f; --pf-cat-7: #63676c; --pf-cat-8: #455565;
+
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -113,6 +139,71 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ---- TẦNG 1c: LANDING — buồng cố định, bất kể theme ------------------ */
+.pf-world {
+  color-scheme: dark;
+
+  --pf-bg:        #0b0f14;
+  --pf-surface:   #16202e;
+  --pf-line:      #223244;
+  --pf-geometry:  #3a5a7a;
+  --pf-subtle:    #223244;
+  --pf-ink:       #a7b3c2;
+  --pf-ink-strong:#e8eef5;
+  --pf-expense:    #ffd23a;  --pf-expense-ink: #ffd23a;
+  --pf-budget:     #35d0ff;  --pf-budget-ink:  #35d0ff;
+  --pf-over:       #ff4d4d;  --pf-over-ink:    #ff4d4d;
+  --pf-ok:         #43d17c;  --pf-ok-ink:      #43d17c;
+
+  /* Alias tên cũ: landing.tsx và detector-scene.tsx vẫn dùng nguyên các tên này */
+  --vacuum:       var(--pf-bg);
+  --steel-deep:   var(--pf-surface);
+  --steel:        var(--pf-line);
+  --ring-steel:   var(--pf-geometry);
+  --text-steel:   var(--pf-ink);
+  --text-bright:  var(--pf-ink-strong);
+  --track-yellow: var(--pf-expense);
+  --track-cyan:   var(--pf-budget);
+  --energy-red:   var(--pf-over);
+  --ok-green:     var(--pf-ok);
+
+  background-color: var(--pf-bg);
+  color: var(--pf-ink);
+  font-family: var(--font-pf-body), system-ui, sans-serif;
+}
+
+/* ---- TẦNG 2: CẦU NỐI SHADCN — viết một lần cho cả hai thế giới ------- */
+:root,
+.pf-world {
+  --background: var(--pf-bg);
+  --foreground: var(--pf-ink-strong);
+  --card: var(--pf-surface);
+  --card-foreground: var(--pf-ink-strong);
+  --popover: var(--pf-surface);
+  --popover-foreground: var(--pf-ink-strong);
+  /* Mực nằm TRÊN một mảng màu tín hiệu. Hằng số cho cả hai rendition: vàng bản
+     giấy (#e0a800) lẫn vàng buồng (#ffd23a) đều cần chữ gần đen. Đừng thay bằng
+     var(--pf-bg) — ở bản giấy nó là #eef1f4, chữ sáng trên vàng chỉ đạt ~1.9:1. */
+  --pf-on-signal: #0b0f14;
+  --primary: var(--pf-expense);
+  --primary-foreground: var(--pf-on-signal);
+  --secondary: var(--pf-subtle);
+  --secondary-foreground: var(--pf-ink-strong);
+  --muted: var(--pf-subtle);
+  --muted-foreground: var(--pf-ink);
+  --accent: var(--pf-subtle);
+  --accent-foreground: var(--pf-ink-strong);
+  --destructive: var(--pf-over-ink);
+  --border: var(--pf-line);
+  --input: var(--pf-line);
+  --ring: var(--pf-expense-ink);
+  --chart-1: var(--pf-expense);
+  --chart-2: var(--pf-budget);
+  --chart-3: var(--pf-over);
+  --chart-4: var(--pf-ok);
+  --chart-5: var(--pf-geometry);
 }
 
 @layer base {
@@ -125,21 +216,59 @@
   }
 }
 
+/* ---- Luật không bóng đổ + panel vuông, áp cho component đi mượn ------
+   Khối này CỐ Ý không nằm trong @layer nào: CSS unlayered thắng mọi layer
+   nên gỡ được rounded-xl/shadow-sm cứng trong shadcn mà không cần fork
+   src/components/ui/* và không cần !important. */
+[data-slot="card"],
+[data-slot="dialog-content"],
+[data-slot="alert-dialog-content"],
+[data-slot="popover-content"],
+[data-slot="select-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="table-container"] {
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
 
-/* Custom Animations for Auth Pages */
-@keyframes gradient-xy {
+.pf-world ::selection {
+  background: var(--pf-expense);
+  color: var(--pf-bg);
+}
 
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
+.pf-display {
+  font-family: var(--font-pf-display), system-ui, sans-serif;
+}
 
-  50% {
-    background-position: 100% 50%;
+/* Hành động chính cấp trang: trên mobile hạ xuống viền vì FAB đã là khối vàng
+   đặc duy nhất (Luật một nguồn sáng, bản app). Từ lg trở lên không có FAB nên
+   nút này nhận lại vai đó. */
+.pf-action {
+  background-color: transparent;
+  border: 1px solid var(--pf-expense);
+  color: var(--pf-expense-ink);
+}
+
+@media (min-width: 1024px) {
+  .pf-action {
+    background-color: var(--pf-expense);
+    border-color: var(--pf-expense);
+    color: var(--pf-on-signal);
   }
 }
 
-.animate-gradient-xy {
-  background-size: 400% 400%;
-  animation: gradient-xy 15s ease infinite;
+.pf-mono {
+  font-family: var(--font-pf-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thanh tiến trình khi đổi bộ lọc (trước đây nằm trong <style jsx global>) */
+@keyframes progress-indeterminate {
+  0% { transform: translateX(-100%) scaleX(0.2); }
+  50% { transform: translateX(0) scaleX(0.5); }
+  100% { transform: translateX(100%) scaleX(0.2); }
+}
+
+.animate-progress-indeterminate {
+  animation: progress-indeterminate 1.5s infinite linear;
 }

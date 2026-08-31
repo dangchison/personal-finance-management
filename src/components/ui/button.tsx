@@ -1,3 +1,6 @@
+/* ĐÃ VÁ TAY — đừng chạy lại `shadcn add button`, sẽ mất:
+   - các size thêm vào (xs, icon-xs, icon-sm, icon-lg) đang được dùng
+   - size.default cao 44px trên mobile cho đủ ngưỡng chạm */
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -21,7 +24,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        default: "h-11 sm:h-9 px-4 py-2 has-[>svg]:px-3",
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",

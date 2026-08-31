@@ -1,67 +1,35 @@
 "use client";
 
 import { useEffect } from "react";
-import { motion } from "framer-motion";
-import { LogOut, Heart } from "lucide-react";
+import { RingMark } from "@/components/brand/ring-mark";
 
 interface GoodbyeScreenProps {
   userName?: string | null;
   onComplete: () => void;
 }
 
+/**
+ * Đây là loading state thật, không phải hiệu ứng: signOut() là async và chậm,
+ * màn này che khoảng chờ đó. Vì vậy giữ lại, chỉ bỏ phần trang trí.
+ */
 export function GoodbyeScreen({ userName, onComplete }: GoodbyeScreenProps) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onComplete();
-    }, 2000);
-
+    const timer = setTimeout(onComplete, 900);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-muted/20 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-        className="flex flex-col items-center gap-6 p-8"
-      >
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [0, -10, 10, 0]
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="relative"
-        >
-          <div className="absolute inset-0 bg-muted/30 blur-2xl rounded-full" />
-          <LogOut className="w-20 h-20 text-muted-foreground relative z-10" />
-        </motion.div>
-
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="text-center space-y-2"
-        >
-          <h1 className="text-4xl font-bold flex items-center gap-2 justify-center">
-            Tạm biệt{userName ? `, ${userName}` : ""}!
-            <Heart className="w-8 h-8 text-red-500 fill-red-500" />
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Hẹn gặp lại bạn sớm nhé 👋
-          </p>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-background">
+      <RingMark className="h-14 w-14 animate-pulse" />
+      <div className="space-y-2 text-center">
+        <p className="pf-display text-xl font-bold text-foreground">
+          Tạm biệt{userName ? `, ${userName}` : ""}!
+        </p>
+        <p className="text-sm text-muted-foreground">Hẹn gặp lại bạn sớm nhé</p>
+      </div>
+      <p className="pf-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+        Đang đóng sổ…
+      </p>
+    </div>
   );
 }

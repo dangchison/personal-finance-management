@@ -38,7 +38,6 @@ export function UserNav() {
   };
 
   const completeLogout = () => {
-    localStorage.removeItem("hasSeenWelcome");
     signOut({ callbackUrl: "/login" });
   };
 
@@ -51,10 +50,10 @@ export function UserNav() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10 transition-transform hover:scale-105 border">
+          <Button variant="ghost" size="icon" className="size-11 rounded-sm sm:size-10">
+            <Avatar className="h-9 w-9 rounded-sm border border-border">
               <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
-              <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+              <AvatarFallback className="pf-mono bg-muted text-foreground text-xs font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -111,10 +110,7 @@ export function UserNav() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={handleLogout}
-            >
+            <AlertDialogAction variant="destructive" onClick={handleLogout}>
               Đăng xuất
             </AlertDialogAction>
           </AlertDialogFooter>

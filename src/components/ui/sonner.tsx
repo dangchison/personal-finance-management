@@ -8,11 +8,11 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/providers/theme-provider"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const { theme } = useTheme()
   const isDark = theme === "dark"
 
   return (
@@ -29,9 +29,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
         loading: <Loader2Icon className="size-5 animate-spin" />,
       }}
       style={{
-        "--normal-bg": isDark ? "#1f2937" : "#ffffff",
-        "--normal-border": isDark ? "#374151" : "#e5e7eb",
-        "--normal-text": isDark ? "#f9fafb" : "#111827",
+        "--normal-bg": "var(--card)",
+        "--normal-border": "var(--border)",
+        "--normal-text": "var(--foreground)",
         "--success-bg": isDark ? "#052e16" : "#ecfdf3",
         "--success-border": isDark ? "#166534" : "#bbf7d0",
         "--success-text": isDark ? "#dcfce7" : "#166534",
@@ -47,7 +47,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       } as CSSProperties}
       toastOptions={{
         classNames: {
-          toast: "rounded-2xl border shadow-lg p-4 gap-3",
+          toast: "rounded-sm border p-4 gap-3",
           title: "text-base font-semibold",
           description: "text-sm opacity-90",
         },

@@ -1,3 +1,5 @@
+/* ĐÃ VÁ TAY — đừng chạy lại `shadcn add alert-dialog`, sẽ mất prop
+   `variant` trên AlertDialogAction (dùng cho nút xoá màu destructive). */
 "use client"
 
 import * as React from "react"
