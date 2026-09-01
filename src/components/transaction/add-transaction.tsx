@@ -53,6 +53,15 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
     setOpen(newOpen);
   };
 
+  // Radix mặc định focus phần tử đầu tiên (tab loại giao dịch); chặn lại và
+  // đưa thẳng con trỏ vào ô số tiền — thao tác đầu tiên của người ghi luôn là gõ số.
+  const focusAmount = (e: Event) => {
+    e.preventDefault();
+    (e.target as HTMLElement | null)
+      ?.querySelector<HTMLInputElement>('input[name="amount"]')
+      ?.focus();
+  };
+
   const onSuccess = () => {
     setOpen(false);
     if (onTransactionAdded) {
@@ -77,7 +86,8 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
           </DialogTrigger>
         )}
         <DialogContent
-          className="sm:max-w-[425px]"
+          className="max-h-[85vh] overflow-y-auto sm:max-w-[425px]"
+          onOpenAutoFocus={focusAmount}
           onPointerDownOutside={(e) => e.preventDefault()}
           onInteractOutside={(e) => e.preventDefault()}
         >
@@ -105,11 +115,13 @@ export function AddTransaction({ categories, initialData, open: controlledOpen, 
       )}
       <SheetContent
         side="bottom"
-        className="max-h-[95vh] rounded-t-[20px] px-4 overflow-y-auto"
+        className="max-h-[95vh] rounded-none px-4 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]"
+        onOpenAutoFocus={focusAmount}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <SheetHeader>
+        {/* SheetHeader mang sẵn p-4, nằm trong px-4 làm tiêu đề thụt 32px — gỡ padding ngang */}
+        <SheetHeader className="px-0">
           <SheetTitle>{initialData ? "Sửa giao dịch" : "Ghi giao dịch"}</SheetTitle>
           <SheetDescription>
             {initialData ? "Sửa lại thông tin của khoản này." : "Chọn tiền ra hay tiền vào, rồi nhập số tiền."}

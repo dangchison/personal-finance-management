@@ -76,7 +76,7 @@ function Calendar({
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          "relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md",
+          "relative has-focus:border-ring border border-input has-focus:ring-ring/50 has-focus:ring-[3px] rounded-none",
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
@@ -84,16 +84,17 @@ function Calendar({
           defaultClassNames.dropdown
         ),
         caption_label: cn(
-          "select-none font-medium",
+          // Tiêu đề tháng là nhãn máy: mono viết hoa, không phải câu
+          "pf-mono select-none text-[11px] font-medium tracking-[0.14em] uppercase",
           captionLayout === "label"
-            ? "text-sm"
-            : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
+            ? ""
+            : "rounded-none pl-2 pr-1 flex items-center gap-1 h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
           defaultClassNames.caption_label
         ),
         table: "w-full border-collapse",
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
-          "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
+          "pf-mono text-muted-foreground rounded-none flex-1 font-normal text-[11px] tracking-[0.1em] uppercase select-none",
           defaultClassNames.weekday
         ),
         week: cn("flex w-full mt-2", defaultClassNames.week),
@@ -106,20 +107,15 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          "relative w-full h-full p-0 text-center [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none",
-          props.showWeekNumber
-            ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-md"
-            : "[&:first-child[data-selected=true]_button]:rounded-l-md",
+          "relative w-full h-full p-0 text-center group/day aspect-square select-none",
           defaultClassNames.day
         ),
-        range_start: cn(
-          "rounded-l-md bg-accent",
-          defaultClassNames.range_start
-        ),
+        range_start: cn("rounded-none bg-accent", defaultClassNames.range_start),
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
-        range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
+        range_end: cn("rounded-none bg-accent", defaultClassNames.range_end),
         today: cn(
-          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+          // Hôm nay chỉ gạch chân — viền vàng để dành cho ngày được chọn
+          "rounded-none [&_button]:underline [&_button]:underline-offset-4",
           defaultClassNames.today
         ),
         outside: cn(
@@ -210,7 +206,9 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+        // Ngày được chọn: viền vàng + chữ vàng-ink trên nền trong, không phải khối vàng đặc
+        // (Luật một nguồn sáng — cùng cách month-picker đã làm)
+        "rounded-none data-[selected-single=true]:border data-[selected-single=true]:border-(--pf-expense) data-[selected-single=true]:bg-background data-[selected-single=true]:font-semibold data-[selected-single=true]:text-(--pf-expense-ink) data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:border data-[range-start=true]:border-(--pf-expense) data-[range-start=true]:bg-background data-[range-start=true]:text-(--pf-expense-ink) data-[range-end=true]:border data-[range-end=true]:border-(--pf-expense) data-[range-end=true]:bg-background data-[range-end=true]:text-(--pf-expense-ink) group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-accent-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-none data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-none [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className
       )}

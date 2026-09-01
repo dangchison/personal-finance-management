@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { TransactionWithCategory, deleteTransaction } from "@/actions/transaction";
-import { Edit, Calendar, Tag, Hash, ArrowDownLeft, ArrowUpRight, Wallet, CreditCard, Trash2, Loader2 } from "lucide-react";
+import { Edit, Calendar, Tag, Hash, Wallet, CreditCard, Trash2, Loader2 } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   AlertDialog,
@@ -21,7 +21,7 @@ import {
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format-currency";
+import { formatCurrency, formatSignedCurrency } from "@/lib/format-currency";
 import {
   Dialog as DialogRoot,
   DialogHeader,
@@ -79,41 +79,34 @@ export function TransactionDetailsModal({
 
   if (!transaction) return null;
 
+  // Cùng ngữ pháp sổ ledger với transaction-item: rail phương thức + số có dấu
+  const rail =
+    transaction.paymentMethod === "TRANSFER" && transaction.transferCode
+      ? `CK·${transaction.transferCode.slice(-4)}`
+      : transaction.paymentMethod === "TRANSFER"
+        ? "CK"
+        : "TM";
 
   const content = (
     <div className="space-y-6 py-4">
-      {/* Amount Section */}
-      <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
-        <div
+      {/* Dòng số tiền — panel hairline, không icon tròn */}
+      <div className="flex items-center gap-3 border border-border px-4 py-4">
+        <span className="pf-mono w-16 shrink-0 text-[11px] tracking-wide text-muted-foreground">
+          {rail}
+        </span>
+        <p className="pf-mono min-w-0 flex-1 text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
+          {transaction.type === "INCOME" ? "Thu nhập" : "Chi tiêu"}
+        </p>
+        <p
           className={cn(
-            "p-3 rounded-full",
+            "pf-mono shrink-0 text-2xl font-semibold whitespace-nowrap",
             transaction.type === "INCOME"
-              ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
-              : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+              ? "text-(--pf-ok-ink)"
+              : "text-(--pf-expense-ink)"
           )}
         >
-          {transaction.type === "INCOME" ? (
-            <ArrowDownLeft className="h-6 w-6" />
-          ) : (
-            <ArrowUpRight className="h-6 w-6" />
-          )}
-        </div>
-        <div className="flex-1">
-          <p className="text-sm text-muted-foreground">
-            {transaction.type === "INCOME" ? "Thu nhập" : "Chi tiêu"}
-          </p>
-          <p
-            className={cn(
-              "text-3xl font-bold",
-              transaction.type === "INCOME"
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-600 dark:text-red-400"
-            )}
-          >
-            {transaction.type === "INCOME" ? "+" : "-"}
-            {formatCurrency(transaction.amount)}
-          </p>
-        </div>
+          {formatSignedCurrency(Number(transaction.amount), transaction.type)}
+        </p>
       </div>
 
       {/* Details Grid */}
@@ -236,7 +229,7 @@ export function TransactionDetailsModal({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="h-[95%] rounded-t-[20px] px-4"
+        className="h-[95%] rounded-none px-4 pb-[env(safe-area-inset-bottom)] overflow-y-auto"
       >
         <SheetHeader>
           <SheetTitle>Chi tiết giao dịch</SheetTitle>
