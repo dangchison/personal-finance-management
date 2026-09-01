@@ -11,7 +11,9 @@ import {
 export type Theme = "light" | "dark";
 
 /**
- * Script đặt class theme TRƯỚC khi trang vẽ, để không nháy nền sáng rồi mới tối.
+ * Script đặt class theme TRƯỚC khi trang vẽ, để không nháy nền.
+ * Mặc định là LIGHT cứng (quyết định 2026-09-01): chưa từng chọn thì thấy bản
+ * giấy, kể cả khi OS đang dark — không theo matchMedia.
  * Chạy ở <head> chứ không phải trong cây React của <body>: next-themes render
  * script này như một element anh em trong body, và nó làm lệch bộ đếm useId của
  * React — mọi component Radix sau đó (Dropdown, Dialog, Select) sinh id khác
@@ -19,7 +21,7 @@ export type Theme = "light" | "dark";
  */
 export const THEME_BOOTSTRAP = `(function(){try{
 var s=localStorage.getItem('theme');
-var t=(s==='light'||s==='dark')?s:(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+var t=(s==='light'||s==='dark')?s:'light';
 var r=document.documentElement;
 r.classList.toggle('dark',t==='dark');
 r.style.colorScheme=t;
@@ -28,7 +30,7 @@ r.style.colorScheme=t;
 const ThemeContext = createContext<{
   theme: Theme;
   setTheme: (theme: Theme) => void;
-}>({ theme: "dark", setTheme: () => {} });
+}>({ theme: "light", setTheme: () => {} });
 
 /**
  * Chỉ cung cấp context, không render thêm bất kỳ element nào — đó là điều kiện
@@ -50,7 +52,7 @@ function getSnapshot(): Theme {
 
 /** Server chưa biết theme; trả mặc định để hydrate khớp, class thật đã có sẵn. */
 function getServerSnapshot(): Theme {
-  return "dark";
+  return "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

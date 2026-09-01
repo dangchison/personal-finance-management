@@ -6,17 +6,17 @@
 /* ============================================================================
    HỆ MÀU "MÁY DÒ DÒNG TIỀN" — ba tầng token
    ----------------------------------------------------------------------------
-   Tầng 1 rendition : --pf-*        khai báo ở :root (giấy) / .dark (buồng) / .pf-world
-   Tầng 2 cầu nối   : --background… viết MỘT LẦN cho ":root, .pf-world"
+   Tầng 1 rendition : --pf-*        khai báo ở :root (giấy) / .dark (buồng)
+   Tầng 2 cầu nối   : --background… + alias landing (--vacuum, --track-yellow…) ở :root
    Tầng 3 utility   : --color-pf-*  trong @theme inline
 
-   THỨ TỰ BỐN KHỐI DƯỚI ĐÂY LÀ LOAD-BEARING:
-     :root  →  .dark  →  .pf-world  →  cầu nối
+   THỨ TỰ BA KHỐI DƯỚI ĐÂY LÀ LOAD-BEARING:
+     :root  →  .dark  →  cầu nối
    .dark và :root cùng match <html> nên source order quyết định ai thắng.
    Đảo thứ tự (hoặc để formatter sắp lại) sẽ vỡ dark mode mà không báo lỗi.
 
-   .dark chỉ match <html>, .pf-world chỉ match div của landing — không bao giờ
-   cùng match một element, nên landing luôn tối bất kể người dùng chọn theme nào.
+   Landing dùng chung :root/.dark với app — cùng một công tắc theme. Các alias
+   tên cũ (--vacuum, --steel…) chỉ trỏ var(--pf-*) nên tự đổi theo rendition.
    ========================================================================== */
 
 @theme inline {
@@ -79,7 +79,7 @@
 
 /* ---- TẦNG 1a: BẢN GIẤY (mặc định khi <html> không có .dark) ---------- */
 :root {
-  --radius: 0.625rem;            /* GIỮ NGUYÊN: .pf-world mượn nó cho rounded-sm */
+  --radius: 0.625rem;            /* GIỮ NGUYÊN: landing mượn nó cho rounded-sm (6px) */
   color-scheme: light;
 
   --pf-bg:        #eef1f4;
@@ -141,23 +141,11 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* ---- TẦNG 1c: LANDING — buồng cố định, bất kể theme ------------------ */
-.pf-world {
-  color-scheme: dark;
-
-  --pf-bg:        #0b0f14;
-  --pf-surface:   #16202e;
-  --pf-line:      #223244;
-  --pf-geometry:  #3a5a7a;
-  --pf-subtle:    #223244;
-  --pf-ink:       #a7b3c2;
-  --pf-ink-strong:#e8eef5;
-  --pf-expense:    #ffd23a;  --pf-expense-ink: #ffd23a;
-  --pf-budget:     #35d0ff;  --pf-budget-ink:  #35d0ff;
-  --pf-over:       #ff4d4d;  --pf-over-ink:    #ff4d4d;
-  --pf-ok:         #43d17c;  --pf-ok-ink:      #43d17c;
-
-  /* Alias tên cũ: landing.tsx và detector-scene.tsx vẫn dùng nguyên các tên này */
+/* ---- TẦNG 2: CẦU NỐI SHADCN + ALIAS LANDING -------------------------- */
+:root {
+  /* Alias tên cũ: landing.tsx, detector-scene.tsx, auth-shell và hai trang auth
+     vẫn dùng nguyên các tên này (~181 chỗ). Chúng trỏ var(--pf-*) nên tự đổi
+     giá trị theo rendition — khai một lần ở :root là đủ cho cả hai nền. */
   --vacuum:       var(--pf-bg);
   --steel-deep:   var(--pf-surface);
   --steel:        var(--pf-line);
@@ -168,15 +156,10 @@
   --track-cyan:   var(--pf-budget);
   --energy-red:   var(--pf-over);
   --ok-green:     var(--pf-ok);
+  /* Khe mực của hai màu tín hiệu hay làm chữ — tối lại trên bản giấy. */
+  --track-yellow-ink: var(--pf-expense-ink);
+  --track-cyan-ink:   var(--pf-budget-ink);
 
-  background-color: var(--pf-bg);
-  color: var(--pf-ink);
-  font-family: var(--font-pf-body), system-ui, sans-serif;
-}
-
-/* ---- TẦNG 2: CẦU NỐI SHADCN — viết một lần cho cả hai thế giới ------- */
-:root,
-.pf-world {
   --background: var(--pf-bg);
   --foreground: var(--pf-ink-strong);
   --card: var(--pf-surface);
@@ -226,18 +209,31 @@
 [data-slot="popover-content"],
 [data-slot="select-content"],
 [data-slot="dropdown-menu-content"],
+[data-slot="sheet-content"],
 [data-slot="table-container"] {
   border-radius: var(--radius-sm);
   box-shadow: none;
 }
 
-.pf-world ::selection {
+::selection {
   background: var(--pf-expense);
-  color: var(--pf-bg);
+  color: var(--pf-on-signal);
 }
 
 .pf-display {
   font-family: var(--font-pf-display), system-ui, sans-serif;
+}
+
+/* Cuộn "hít theo section" của landing. Gắn lên <html> vì scroll nằm trên
+   window; Landing mount thì thêm class, unmount thì gỡ. `proximity` chứ không
+   `mandatory`: 4/8 section cao hơn một màn ở 375px, mandatory sẽ nhốt người
+   đọc. scroll-padding bù header sticky 56px. */
+.pf-snap {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 3.5rem;
+}
+.pf-snap-target {
+  scroll-snap-align: start;
 }
 
 /* Hành động chính cấp trang: trên mobile hạ xuống viền vì FAB đã là khối vàng

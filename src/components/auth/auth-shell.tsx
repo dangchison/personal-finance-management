@@ -3,6 +3,7 @@ import Link from "next/link";
 import { DetectorScene } from "@/components/landing/detector-scene";
 import { pfFontVars } from "@/lib/fonts";
 import { RingMark } from "@/components/brand/ring-mark";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 interface AuthShellProps {
   mode: "login" | "register";
@@ -22,7 +23,7 @@ export function AuthShell({ mode, title, description, children }: AuthShellProps
 
   return (
     <div className={pfFontVars}>
-      <main className="pf-world flex min-h-screen flex-col">
+      <main className="flex min-h-screen flex-col">
         <header className="border-b border-(--steel)">
           <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-10">
             <Link href="/" className="flex min-h-11 items-center gap-2.5">
@@ -32,12 +33,15 @@ export function AuthShell({ mode, title, description, children }: AuthShellProps
               </span>
             </Link>
 
-            <Link
-              href={isLogin ? "/register" : "/login"}
-              className="pf-display flex h-11 items-center rounded-sm border border-(--ring-steel) px-4 text-sm font-semibold tracking-wide whitespace-nowrap text-(--text-steel) transition-colors hover:border-(--track-yellow) hover:text-(--track-yellow) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--track-yellow)"
-            >
-              {isLogin ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP"}
-            </Link>
+            <div className="flex items-center gap-1.5">
+              <ThemeToggle />
+              <Link
+                href={isLogin ? "/register" : "/login"}
+                className="pf-display flex h-11 items-center rounded-sm border border-(--ring-steel) px-4 text-sm font-semibold tracking-wide whitespace-nowrap text-(--text-steel) transition-colors hover:border-(--track-yellow) hover:text-(--track-yellow-ink) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--track-yellow)"
+              >
+                {isLogin ? "TẠO TÀI KHOẢN" : "ĐĂNG NHẬP"}
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -53,7 +57,7 @@ export function AuthShell({ mode, title, description, children }: AuthShellProps
                 {proofPoints.map((p) => (
                   <div key={p.label} className="bg-(--vacuum) p-3">
                     <dt className="text-[10px] tracking-[0.14em] text-(--text-steel)">{p.label}</dt>
-                    <dd className="mt-1 text-sm font-semibold text-(--track-yellow)">{p.value}</dd>
+                    <dd className="mt-1 text-sm font-semibold text-(--track-yellow-ink)">{p.value}</dd>
                   </div>
                 ))}
               </dl>
@@ -61,7 +65,7 @@ export function AuthShell({ mode, title, description, children }: AuthShellProps
           </aside>
 
           {/* Cột phải: form */}
-          <section className="mx-auto w-full max-w-md border border-(--steel) bg-(--steel-deep)/60 p-5 sm:p-7 lg:mx-0 lg:max-w-none">
+          <section className="mx-auto w-full max-w-md border border-(--steel) bg-(--pf-subtle)/60 p-5 sm:p-7 lg:mx-0 lg:max-w-none">
             <div className="mb-6 space-y-2">
               <h1 className="pf-display text-2xl font-bold tracking-tight text-(--text-bright) sm:text-3xl">
                 {title}

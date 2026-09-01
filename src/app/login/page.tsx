@@ -84,7 +84,7 @@ function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute top-1/2 right-1 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-(--text-steel) transition-colors hover:text-(--track-yellow)"
+            className="absolute top-1/2 right-1 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-(--text-steel) transition-colors hover:text-(--track-yellow-ink)"
             aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             tabIndex={-1}
           >
@@ -108,7 +108,7 @@ function LoginForm() {
       <Button
         type="submit"
         disabled={loading}
-        className="pf-display h-12 w-full rounded-sm bg-(--track-yellow) text-base font-bold tracking-wide text-(--vacuum) hover:bg-(--track-yellow)/90"
+        className="pf-display h-12 w-full rounded-sm bg-(--track-yellow) text-base font-bold tracking-wide text-(--pf-on-signal) hover:bg-(--track-yellow)/90"
       >
         {loading ? (
           <span className="inline-flex items-center gap-2">
@@ -122,7 +122,7 @@ function LoginForm() {
 
       <p className="text-center text-sm text-(--text-steel)">
         Chưa có tài khoản?{" "}
-        <Link href="/register" className="font-semibold text-(--track-yellow) hover:underline">
+        <Link href="/register" className="font-semibold text-(--track-yellow-ink) hover:underline">
           Tạo một cái, mất 1 phút
         </Link>
       </p>
@@ -133,7 +133,7 @@ function LoginForm() {
 function LoginFormFallback() {
   return (
     <div className="flex h-40 items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-(--track-yellow)" />
+      <Loader2 className="h-6 w-6 animate-spin text-(--track-yellow-ink)" />
     </div>
   );
 }

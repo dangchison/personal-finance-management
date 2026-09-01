@@ -1,6 +1,6 @@
 ---
 name: Máy Dò Dòng Tiền
-description: Thế giới thị giác "collider event display" của toàn sản phẩm — trang công khai ("/", "/login", "/register") ở đăng ký Persuade, app sau đăng nhập ở đăng ký Operate. Hai rendition: buồng tối và bản giấy sáng.
+description: Thế giới thị giác "collider event display" của toàn sản phẩm — trang công khai ("/", "/login", "/register") ở đăng ký Persuade, app sau đăng nhập ở đăng ký Operate. Hai rendition (buồng tối / bản giấy sáng) áp cho CẢ HAI đăng ký, cùng một công tắc theme, mặc định light.
 colors:
   vacuum: "#0b0f14"
   steel: "#223244"
@@ -87,15 +87,15 @@ Landing là một event display của máy gia tốc hạt áp lên dòng tiền
 
 **Phạm vi bắt buộc:** file này điều hành TOÀN BỘ sản phẩm, hai đăng ký khác nhau:
 
-- **Persuade** — ba route công khai `/`, `/login`, `/register`. Token và luật scoped trong class `.pf-world` (`src/app/globals.css`), luôn tối bất kể theme người dùng chọn. Có dàn dựng GSAP.
+- **Persuade** — ba route công khai `/`, `/login`, `/register`. Chạy trên cùng token `:root`/`.dark` với app (các alias tên cũ `--vacuum`, `--track-yellow`… khai ở `:root` và trỏ `var(--pf-*)` nên tự đổi theo theme). Có dàn dựng GSAP, có nút đổi nền ngay trên header.
 - **Operate** — app sau đăng nhập (dashboard, transactions, reports, settings, family). Chạy trên token shadcn ở `:root`/`.dark` của cùng file CSS, hai rendition: `.dark` là buồng chân không giống landing, `:root` là bản giấy sáng của chính thế giới đó. Không dàn dựng, không animation vào-trang.
 
 Cả hai đăng ký dùng chung một bảng màu, một bộ font (`src/lib/fonts.ts`, gắn ở `<body>`), một ngôn ngữ hình (panel vuông hairline, grid thép gap-px, plaque trên viền, số mono tabular). Khác nhau ở mật độ, ở lượng chuyển động, và ở chỗ Operate phải đọc được dưới nắng nên có bản giấy.
 
-Kiến trúc token ba tầng, xem mục Colors: tầng rendition (`--pf-*`), tầng cầu nối shadcn (`--background`, `--card`…), tầng utility (`@theme inline`). **Thứ tự khối trong `globals.css` là load-bearing**: `:root` → `.dark` → `.pf-world` → cầu nối. Format lại file làm đảo thứ tự sẽ vỡ dark mode âm thầm.
+Kiến trúc token ba tầng, xem mục Colors: tầng rendition (`--pf-*`), tầng cầu nối shadcn (`--background`, `--card`…), tầng utility (`@theme inline`). **Thứ tự khối trong `globals.css` là load-bearing**: `:root` → `.dark` → cầu nối. Format lại file làm đảo thứ tự sẽ vỡ dark mode âm thầm.
 
 **Key Characteristics:**
-- Hai rendition cùng một thế giới: buồng vacuum (mặc định của app, và cố định trên landing) và bản giấy sáng cho app khi dùng ngoài nắng. Landing không có bản sáng.
+- Hai rendition cùng một thế giới: bản giấy sáng (mặc định toàn sản phẩm — light cứng, không theo OS) và buồng vacuum khi người dùng bật nền tối. Landing và app cùng một công tắc.
 - Viền hairline 1px thay cho bóng đổ; độ sâu đến từ lớp mờ và glow SVG.
 - Màu là mã dữ liệu, không phải trang trí: vàng = chi/hành động, cyan = ngân sách, đỏ = năng lượng đã dùng, xanh lá = trạng thái tốt.
 - Số VND luôn mono tabular, định dạng Việt `12.450.000 ₫`; số liệu demo luôn ghi nhãn `SỐ LIỆU MINH HOẠ`.
@@ -128,7 +128,7 @@ Bảng màu là buồng máy dò: bốn màu tín hiệu bão hoà nổi trên n
 
 **Luật một nguồn sáng.** Mỗi viewport chỉ có một khối vàng đặc (CTA chính). Mọi chỗ vàng còn lại là stroke, chữ hoặc chấm. Hai khối vàng đặc cạnh nhau là sai thế giới.
 
-**Luật cầu nối shadcn.** `.pf-world` gán đè bộ token shadcn (`--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`) lên chính màu của thế giới, để `Input`/`Button`/`Label`/`Checkbox` dùng chung render đúng ngay trong buồng tối mà không cần fork component. Việc gán đè này chỉ sống trong `.pf-world` và không rò ra `:root`. Hệ quả bắt buộc: token riêng của thế giới không được trùng tên với token shadcn — đó là lý do màu vành là `--ring-steel`. Thêm token mới cho thế giới thì kiểm tên với danh sách shadcn trước.
+**Luật cầu nối shadcn.** Khối cầu nối ở `:root` gán bộ token shadcn (`--background`, `--card`, `--primary`…) lên token `--pf-*` của thế giới, để component dùng chung render đúng ở cả hai rendition mà không cần fork. Cũng tại đây khai 10 alias tên cũ của landing (`--vacuum`, `--steel`, `--track-yellow`…) và hai khe mực `--track-yellow-ink`/`--track-cyan-ink`. Hệ quả bắt buộc: token riêng của thế giới không được trùng tên với token shadcn — đó là lý do màu vành là `--ring-steel`. Thêm token mới thì kiểm tên với danh sách shadcn trước.
 
 ## Typography
 
@@ -267,7 +267,7 @@ Toàn bộ chuyển động entrance/scroll trên landing chạy bằng GSAP + S
 
 ## Luật của bản app (Operate)
 
-**Luật hai rendition.** Cùng một thế giới, hai cách in: buồng chân không (`.dark`) và bản giấy (`:root`). Chỉ tầng token `--pf-*` được nhân bản; tầng cầu nối shadcn viết một lần cho `:root, .pf-world`. Landing không có bản sáng — `.pf-world` tự khai báo lại buồng nên nút đổi nền của app không với tới nó.
+**Luật hai rendition.** Cùng một thế giới, hai cách in: bản giấy (`:root`, mặc định) và buồng chân không (`.dark`). Chỉ tầng token `--pf-*` được nhân bản; cầu nối + alias viết một lần ở `:root`. Toàn sản phẩm — landing lẫn app — theo cùng một class trên `<html>`, nên đổi nền ở đâu thì đâu cũng đổi. Mặc định là light CỨNG (không matchMedia): khai ở `THEME_BOOTSTRAP`, default context và `getServerSnapshot` của `theme-provider.tsx` — ba chỗ phải khớp nhau.
 
 **Luật hai kênh token.** Chrome (nền, viền, chữ, panel) đi qua token shadcn; ngữ nghĩa dữ liệu (chi, ngân sách, vượt, ổn) đi qua `--pf-*`. Đừng lấy `--primary` để tô dữ liệu và đừng lấy `--pf-expense` để tô nút — chart là dữ liệu, nút là hành động.
 
@@ -293,12 +293,16 @@ Toàn bộ chuyển động entrance/scroll trên landing chạy bằng GSAP + S
 
 **Bẫy phần trăm bị kẹp trần.** `getBudgetProgress` trả `percentage` đã kẹp ở 100, nên vượt 300% vẫn đọc ra "100%". Chỗ nào cần nói đúng mức vượt thì tính lại từ `spent / total` ở tầng hiển thị; thanh bar vẫn dùng giá trị kẹp vì nó không vẽ được quá 100. Kèm theo: nút chặn đỏ ở mép phải bar và viền trái 2px đỏ cho dòng vượt.
 
+**Cơ chế cuộn hít của landing.** Scroll nằm trên `window` nên `scroll-snap-type` phải đặt lên `<html>`: Landing mount thì gắn class `pf-snap` (khai ở `globals.css`, `y proximity` + `scroll-padding-top: 3.5rem` bù header), unmount thì gỡ. Mỗi section cấp 1 mang `pf-snap-target` (`scroll-snap-align: start`). Dùng `proximity`, không `mandatory` — 4/8 section cao hơn một màn ở 375px, mandatory sẽ nhốt người đọc. Root của landing giữ `overflow-x-clip`, đừng đổi thành `hidden` (sinh scroll container phụ, snap chết).
+
+**Cơ chế highlight "Bốn lớp dò".** MỘT ScrollTrigger scrub trên cột panel, `onUpdate` map `progress → index` (mốc 40% viewport ≈ tâm diagram sticky). KHÔNG dùng trigger per-panel với `top center → bottom center`: khoảng `space-y-24` giữa các panel tạo dead-zone và cửa sổ kích hoạt lệch một lớp so với vị trí đọc — đây chính là bug "cuộn lớp 1 sáng lớp đỏ" đã sửa. Band trong JSX render đồng đều, GSAP set band active; nhánh reduced để cả 4 band đồng đều.
+
 ## Do's and Don'ts
 
 ### Do:
-- **Do** giữ mọi token và style của thế giới trong `.pf-world`; surface công khai mới phải nằm dưới class này và bọc bằng `pfFontVars` từ `src/lib/fonts.ts`.
+- **Do** bọc surface công khai mới bằng `pfFontVars` từ `src/lib/fonts.ts`; token lấy qua alias/`--pf-*` có sẵn, không khai màu cục bộ.
 - **Do** cho section mới chạy hết bề ngang với `px-4 sm:px-6 lg:px-10 xl:px-16`, và chặn chữ bằng `minmax(0,1fr)` hoặc `lg:max-w-*` ngay trên đoạn văn.
-- **Do** đặt tên token mới của thế giới sao cho không trùng tên token shadcn (`--ring-steel`, không phải `--ring`) — `.pf-world` đang gán đè bộ token đó.
+- **Do** đặt tên token mới của thế giới sao cho không trùng tên token shadcn (`--ring-steel`, không phải `--ring`) — khối cầu nối đang gán đè bộ token đó.
 - **Do** gắn `.pf-reveal` cho khối nội dung mới thay vì viết timeline GSAP riêng.
 - **Do** ghi nhãn `SỐ LIỆU MINH HOẠ` (mono, viết hoa) cạnh mọi con số demo — đây là ràng buộc sự thật sản phẩm, không phải trang trí.
 - **Do** đặt mọi số tiền trong `.pf-mono` tabular, định dạng `12.450.000 ₫`, dấu âm là `−` đứng trước.
@@ -307,7 +311,7 @@ Toàn bộ chuyển động entrance/scroll trên landing chạy bằng GSAP + S
 - **Do** viết mọi animation mới bằng GSAP trong scope `useGSAP` hiện có, với nhánh reduced trả về trạng thái tĩnh hoàn chỉnh.
 
 ### Don't:
-- **Don't** đặt tên token mới trùng token shadcn, và **don't** đảo thứ tự bốn khối trong `globals.css` (`:root` → `.dark` → `.pf-world` → cầu nối) — cả hai đều làm vỡ hệ màu âm thầm.
+- **Don't** đặt tên token mới trùng token shadcn, và **don't** đảo thứ tự ba khối trong `globals.css` (`:root` → `.dark` → cầu nối) — cả hai đều làm vỡ hệ màu âm thầm.
 - **Don't** bọc section bằng `max-w-6xl` hay bất kỳ container căn giữa nào (Luật toàn khung).
 - **Don't** fork `Input`/`Button`/`Label`/`Checkbox` cho thế giới tối — cầu nối token đã lo, fork sẽ lệch khi app đổi component.
 - **Don't** bịa social proof: không testimonial, không số người dùng, không logo khách, không giải thưởng (PRODUCT.md cấm tuyệt đối).
